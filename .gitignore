@@ -1,0 +1,6 @@
+.envrc
+
+/.cargo
+/debug
+/target
+/temp

@@ -1,3 +1,5 @@
+#![allow(clippy::multiple_crate_versions)]
+
 #[allow(dead_code)]
 fn testable() -> bool {
     true

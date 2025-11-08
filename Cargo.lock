@@ -192,9 +192,11 @@ dependencies = [
 name = "eventric-surface-examples"
 version = "0.1.0"
 dependencies = [
+ "derive_more",
  "eventric-core",
  "eventric-stream",
  "eventric-surface",
+ "fancy_constructor",
 ]
 
 [[package]]

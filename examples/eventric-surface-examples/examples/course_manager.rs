@@ -16,9 +16,11 @@ use eventric_stream::{
     error::Error,
     event::{
         Data,
+        EphemeralEvent,
         Identifier,
         PersistentEvent,
         Tag,
+        Version,
     },
     stream::{
         Stream,
@@ -33,7 +35,6 @@ use eventric_stream::{
 use eventric_surface_examples::{
     Decision,
     DeserializedPersistentEvent,
-    Event,
     GetIdentifier,
     GetQuery,
     GetSpecifier as _,
@@ -41,6 +42,10 @@ use eventric_surface_examples::{
     Update,
 };
 use fancy_constructor::new;
+use serde::{
+    Deserialize,
+    Serialize,
+};
 
 // NOTES
 
@@ -53,12 +58,26 @@ use fancy_constructor::new;
 
 static COURSE_REGISTERED_IDENTIFIER: OnceLock<Identifier> = OnceLock::new();
 
-impl<'a> Event<'a> for CourseRegistered {
-    fn deserialize(_data: &'a Data) -> Result<Self, Error>
-    where
-        Self: Sized,
-    {
-        todo!()
+impl TryFrom<CourseRegistered> for EphemeralEvent {
+    type Error = Error;
+
+    fn try_from(event: CourseRegistered) -> Result<Self, Self::Error> {
+        let data = serde_json::to_vec(&event).map_err(|_| Error::data("serialization"))?;
+        let data = Data::new(data)?;
+
+        let identifier = CourseRegistered::identifier().cloned()?;
+        let tags = event.tags()?;
+        let version = Version::default();
+
+        Ok(EphemeralEvent::new(data, identifier, tags, version))
+    }
+}
+
+impl TryFrom<&PersistentEvent> for CourseRegistered {
+    type Error = Error;
+
+    fn try_from(event: &PersistentEvent) -> Result<Self, Self::Error> {
+        serde_json::from_slice(event.data().as_ref()).map_err(|_| Error::data("deserialization"))
     }
 }
 
@@ -87,7 +106,7 @@ impl<'a> Decision<'a> for CourseExists {
     fn filter_deserialize(event: &'a PersistentEvent) -> Result<Option<Box<dyn Any>>, Error> {
         let event = match event.identifier() {
             identifier if identifier == CourseRegistered::identifier()? => {
-                let event = CourseRegistered::deserialize(event.data())?;
+                let event: CourseRegistered = event.try_into()?;
                 let event = Box::new(event) as Box<dyn Any>;
 
                 Some(event)
@@ -116,7 +135,7 @@ impl<'a> Decision<'a> for CourseExists {
 
 // Events
 
-#[derive(new, Debug)]
+#[derive(new, Debug, Deserialize, Serialize)]
 pub struct CourseRegistered {
     #[new(into)]
     pub id: String,
@@ -155,16 +174,22 @@ impl Update<'_> for CourseExists {
 // Example...
 
 pub fn main() -> Result<(), Error> {
-    let mut stream = Stream::builder(eventric_stream::temp_path())
-        .temporary(true)
-        .open()?;
+    let mut stream = Stream::builder("./temp").temporary(false).open()?;
 
-    let mut decision = CourseExists::new("some_course");
+    let course_id = "some_course";
+
+    println!("creating new decision");
+
+    let mut decision = CourseExists::new(course_id);
+
+    println!("current decision state: {decision:#?}");
 
     let query = decision.query()?;
     let condition = query::Condition::default().matches(&query);
 
     let mut position = None;
+
+    println!("running decision query");
 
     for event in stream.query(&condition, None) {
         let event = event?;
@@ -175,19 +200,37 @@ pub fn main() -> Result<(), Error> {
             let event = DeserializedPersistentEvent::new(deserialized, event);
 
             if let Some(event) = CourseExists::filter_map(&event)? {
+                println!("applying update to decision: {event:#?}");
+
                 decision.update(event);
+
+                println!("current decision state: {decision:#?}");
             }
         }
     }
 
-    if !decision.exists {
+    println!("making decision");
+    println!("current decision state: {decision:#?}");
+
+    if decision.exists {
+        println!("decision invalid, course already exists");
+    } else {
+        println!("decision valid, creating condition to append");
+
         let mut condition = append::Condition::new(&query);
 
         if let Some(position) = position {
+            println!("extending append condition with after position");
+
             condition = condition.after(position);
         }
 
-        stream.append([], Some(&condition))?;
+        println!("appending new events");
+
+        let event = CourseRegistered::new(course_id, "My Course", 30);
+        let event = event.try_into()?;
+
+        stream.append([&event], Some(&condition))?;
     }
 
     Ok(())

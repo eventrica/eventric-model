@@ -11,7 +11,6 @@ use std::any::Any;
 use eventric_stream::{
     error::Error,
     event::{
-        Data,
         Identifier,
         PersistentEvent,
         Specifier,
@@ -47,12 +46,6 @@ pub trait Decision<'a> {
 
     fn filter_deserialize(event: &'a PersistentEvent) -> Result<Option<Box<dyn Any>>, Error>;
     fn filter_map(event: &'a DeserializedPersistentEvent) -> Result<Option<Self::Event>, Error>;
-}
-
-pub trait Event<'a> {
-    fn deserialize(data: &'a Data) -> Result<Self, Error>
-    where
-        Self: Sized;
 }
 
 pub trait Update<'a>: Decision<'a> {

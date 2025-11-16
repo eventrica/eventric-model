@@ -200,6 +200,15 @@ dependencies = [
 name = "eventric-stream"
 version = "0.1.0"
 dependencies = [
+ "eventric-stream-core",
+ "eventric-stream-macros",
+ "include-utils",
+]
+
+[[package]]
+name = "eventric-stream-core"
+version = "0.1.0"
+dependencies = [
  "any-range",
  "bytes",
  "dashmap",
@@ -208,12 +217,15 @@ dependencies = [
  "eventric-core",
  "fancy_constructor",
  "fjall",
- "include-utils",
  "rand",
  "rapidhash",
  "self_cell",
  "thiserror",
 ]
+
+[[package]]
+name = "eventric-stream-macros"
+version = "0.1.0"
 
 [[package]]
 name = "eventric-surface"

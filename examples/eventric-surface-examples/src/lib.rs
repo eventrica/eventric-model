@@ -10,15 +10,9 @@ use std::any::Any;
 
 use eventric_stream::{
     error::Error,
-    event::{
-        PersistentEvent,
-        Specifier,
-    },
+    event::PersistentEvent,
 };
-use eventric_surface::event::{
-    Codec,
-    Identified,
-};
+use eventric_surface::event::Identified;
 use fancy_constructor::new;
 
 #[derive(new, Debug)]
@@ -37,39 +31,5 @@ impl DeserializedPersistentEvent {
         }
 
         Ok(self.deserialized.downcast_ref::<T>())
-    }
-}
-
-// Temporary Test Traits
-
-pub trait Decision<'a> {
-    type Event;
-
-    fn filter_deserialize<C>(
-        codec: &C,
-        event: &'a PersistentEvent,
-    ) -> Result<Option<Box<dyn Any>>, Error>
-    where
-        C: Codec;
-
-    fn filter_map(event: &'a DeserializedPersistentEvent) -> Result<Option<Self::Event>, Error>;
-}
-
-pub trait Update<'a>: Decision<'a> {
-    fn update(&mut self, event: Self::Event);
-}
-
-// Temporary Convenience Traits
-
-pub trait GetSpecifier {
-    fn specifier() -> Result<Specifier, Error>;
-}
-
-impl<T> GetSpecifier for T
-where
-    T: Identified,
-{
-    fn specifier() -> Result<Specifier, Error> {
-        T::identifier().cloned().map(Specifier::new)
     }
 }

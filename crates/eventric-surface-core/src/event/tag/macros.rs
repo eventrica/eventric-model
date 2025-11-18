@@ -1,5 +1,11 @@
+#![allow(clippy::needless_continue)]
+
 use std::collections::HashMap;
 
+use darling::{
+    Error,
+    FromDeriveInput,
+};
 use proc_macro2::{
     Span,
     TokenStream,
@@ -11,6 +17,7 @@ use quote::{
     quote,
 };
 use syn::{
+    DeriveInput,
     ExprClosure,
     Ident,
     parse::{
@@ -72,6 +79,52 @@ impl ToTokens for IdentPrefixAndTag<'_> {
                 #tag_macro!(#prefix, &self.#ident)
             }),
         }
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+// Tagged
+
+#[derive(Debug, FromDeriveInput)]
+#[darling(attributes(tagged), supports(struct_named))]
+pub(crate) struct Tagged {
+    ident: Ident,
+    #[darling(map = "tags_map")]
+    tags: Option<HashMap<Ident, List<Tag>>>,
+}
+
+impl Tagged {
+    pub fn new(input: &DeriveInput) -> Result<Self, Error> {
+        Self::from_derive_input(input)
+    }
+}
+
+impl Tagged {
+    pub fn tags(ident: &Ident, tags: Option<&HashMap<Ident, List<Tag>>>) -> TokenStream {
+        let tag = tags_fold(ident, tags);
+        let tag_count = tag.len();
+
+        let tag_type = quote! { eventric_stream::event::Tag };
+        let error_type = quote! { eventric_stream::error::Error };
+
+        quote! {
+            impl eventric_surface::event::Tagged for #ident {
+                fn tags(&self) -> Result<Vec<#tag_type>, #error_type> {
+                    let mut tags = Vec::with_capacity(#tag_count);
+
+                  #(tags.push(#tag?);)*
+
+                    Ok(tags)
+                }
+            }
+        }
+    }
+}
+
+impl ToTokens for Tagged {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.append_all(Tagged::tags(&self.ident, self.tags.as_ref()));
     }
 }
 

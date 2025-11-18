@@ -26,15 +26,16 @@ use eventric_surface::{
         json,
     },
     projection::{
+        Dispatch,
         Projection,
         QuerySource,
+        Recognize,
+        Update,
     },
 };
 use eventric_surface_examples::{
-    Decision,
     DeserializedPersistentEvent,
-    GetSpecifier as _,
-    Update,
+    // GetSpecifier as _,
 };
 use fancy_constructor::new;
 use serde::{
@@ -51,18 +52,19 @@ use serde::{
 
 // Theoretically Generated...
 
-#[derive(Debug)]
-pub enum CourseExistsEvent<'a> {
-    CourseRegistered(&'a CourseRegistered),
+impl Dispatch for CourseExists {
+    fn dispatch(&mut self, event: &Box<dyn Any>) {
+        match event {
+            event if let Some(event) = event.downcast_ref::<CourseRegistered>() => {
+                self.update(event);
+            }
+            _ => {}
+        }
+    }
 }
 
-impl<'a> Decision<'a> for CourseExists {
-    type Event = CourseExistsEvent<'a>;
-
-    fn filter_deserialize<C>(
-        codec: &C,
-        event: &'a PersistentEvent,
-    ) -> Result<Option<Box<dyn Any>>, Error>
+impl Recognize for CourseExists {
+    fn recognize<C>(codec: &C, event: &PersistentEvent) -> Result<Option<Box<dyn Any>>, Error>
     where
         C: Codec,
     {
@@ -70,19 +72,6 @@ impl<'a> Decision<'a> for CourseExists {
             identifier if identifier == CourseRegistered::identifier()? => {
                 let event = codec.decode::<CourseRegistered>(event)?;
                 let event = Box::new(event) as Box<dyn Any>;
-
-                Some(event)
-            }
-            _ => None,
-        };
-
-        Ok(event)
-    }
-
-    fn filter_map(event: &'a DeserializedPersistentEvent) -> Result<Option<Self::Event>, Error> {
-        let event = match event {
-            event if let Some(event) = event.deserialize_as::<CourseRegistered>()? => {
-                let event = Self::Event::CourseRegistered(event);
 
                 Some(event)
             }
@@ -118,11 +107,9 @@ pub struct CourseExists {
     pub id: String,
 }
 
-impl Update<'_> for CourseExists {
-    fn update(&mut self, event: Self::Event) {
-        match event {
-            Self::Event::CourseRegistered(_) => self.exists = true,
-        }
+impl Update<CourseRegistered> for CourseExists {
+    fn update(&mut self, _: &CourseRegistered) {
+        self.exists = true;
     }
 }
 
@@ -155,16 +142,10 @@ pub fn main() -> Result<(), Error> {
 
         position = Some(*event.position());
 
-        if let Some(deserialized) = CourseExists::filter_deserialize(&codec, &event)? {
+        if let Some(deserialized) = CourseExists::recognize(&codec, &event)? {
             let event = DeserializedPersistentEvent::new(deserialized, event);
 
-            if let Some(event) = CourseExists::filter_map(&event)? {
-                println!("applying update to decision: {event:#?}");
-
-                decision.update(event);
-
-                println!("current decision state: {decision:#?}");
-            }
+            decision.dispatch(&event.deserialized);
         }
     }
 

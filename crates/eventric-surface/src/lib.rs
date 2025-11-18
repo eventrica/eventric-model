@@ -9,6 +9,7 @@ pub mod event {
         Codec,
         Event,
         Identified,
+        Specified,
         Tagged,
     };
     pub use eventric_surface_macros::{
@@ -24,8 +25,11 @@ pub mod event {
 
 pub mod projection {
     pub use eventric_surface_core::projection::{
+        Dispatch,
         Projection,
         QuerySource,
+        Recognize,
+        Update,
     };
     pub use eventric_surface_macros::{
         Projection,

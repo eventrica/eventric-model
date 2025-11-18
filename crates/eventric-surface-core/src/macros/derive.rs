@@ -33,13 +33,13 @@ pub fn event(input: &DeriveInput) -> TokenStream {
 #[doc(hidden)]
 #[must_use]
 pub fn identifier(input: &DeriveInput) -> TokenStream {
-    emit_impl_or_error!(event::macros::Identified::new(input))
+    emit_impl_or_error!(event::identifier::macros::Identified::new(input))
 }
 
 #[doc(hidden)]
 #[must_use]
 pub fn tagged(input: &DeriveInput) -> TokenStream {
-    emit_impl_or_error!(event::macros::Tagged::new(input))
+    emit_impl_or_error!(event::tag::macros::Tagged::new(input))
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -55,5 +55,5 @@ pub fn projection(input: &DeriveInput) -> TokenStream {
 #[doc(hidden)]
 #[must_use]
 pub fn query_source(input: &DeriveInput) -> TokenStream {
-    emit_impl_or_error!(projection::macros::QuerySource::new(input))
+    emit_impl_or_error!(projection::query::macros::QuerySource::new(input))
 }

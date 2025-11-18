@@ -7,6 +7,7 @@ use eventric_stream::{
     error::Error,
     event::{
         Identifier,
+        Specifier,
         Tag,
     },
 };
@@ -27,6 +28,21 @@ pub trait Event: DeserializeOwned + Identified + Tagged + Serialize {}
 
 pub trait Identified {
     fn identifier() -> Result<&'static Identifier, Error>;
+}
+
+// Specified
+
+pub trait Specified {
+    fn specifier() -> Result<Specifier, Error>;
+}
+
+impl<T> Specified for T
+where
+    T: Identified,
+{
+    fn specifier() -> Result<Specifier, Error> {
+        T::identifier().cloned().map(Specifier::new)
+    }
 }
 
 // Tagged

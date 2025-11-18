@@ -11,30 +11,28 @@ use std::any::Any;
 use derive_more::Debug;
 use eventric_stream::{
     error::Error,
-    event::{
-        PersistentEvent,
-        tag,
-    },
+    event::PersistentEvent,
     stream::{
         Stream,
         append,
-        query::{
-            self,
-            Query,
-            Selector,
-        },
+        query,
     },
 };
-use eventric_surface::event::{
-    Codec,
-    Event,
-    Identified as _,
-    json,
+use eventric_surface::{
+    event::{
+        Codec,
+        Event,
+        Identified as _,
+        json,
+    },
+    projection::{
+        Projection,
+        QuerySource,
+    },
 };
 use eventric_surface_examples::{
     Decision,
     DeserializedPersistentEvent,
-    GetQuery,
     GetSpecifier as _,
     Update,
 };
@@ -111,21 +109,13 @@ pub struct CourseRegistered {
 
 // Decisions
 
-#[derive(new, Debug)]
+#[derive(new, Debug, Projection)]
+#[projection(query(select(events(CourseRegistered), filter(course_id(id)))))]
 pub struct CourseExists {
     #[new(default)]
     pub exists: bool,
     #[new(into)]
     pub id: String,
-}
-
-impl GetQuery for CourseExists {
-    fn query(&self) -> Result<Query, Error> {
-        Query::new([Selector::specifiers_and_tags(
-            [CourseRegistered::specifier()?],
-            [tag!(course_id, self.id)?],
-        )?])
-    }
 }
 
 impl Update<'_> for CourseExists {

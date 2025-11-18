@@ -7,41 +7,38 @@ use darling::{
     FromDeriveInput,
 };
 use eventric_stream::event;
-use proc_macro2::{
-    Span,
-    TokenStream,
-    TokenTree,
-};
+use proc_macro2::TokenStream;
 use quote::{
     ToTokens,
-    TokenStreamExt,
+    TokenStreamExt as _,
     quote,
 };
 use syn::{
     DeriveInput,
-    ExprClosure,
     Ident,
-    Meta,
-    MetaList,
-    parse::{
-        Parse,
-        ParseStream,
-    },
 };
 
-use crate::macros::List;
+use crate::{
+    event::{
+        identifier,
+        tag,
+        tag::macros::Tag,
+    },
+    macros::List,
+};
 
 // =================================================================================================
-// Event
+// Macros
 // =================================================================================================
 
 #[derive(Debug, FromDeriveInput)]
-#[darling(attributes(event), forward_attrs(allow, doc), supports(struct_named))]
+#[darling(attributes(event), supports(struct_named))]
 pub(crate) struct Event {
     ident: Ident,
-    #[darling(with = "identifier_parser")]
+    #[darling(with = "identifier::macros::identifier_parse")]
     identifier: String,
-    tags: Option<HashMap<String, List<Tag>>>,
+    #[darling(map = "tag::macros::tags_map")]
+    tags: Option<HashMap<Ident, List<Tag>>>,
 }
 
 impl Event {
@@ -79,7 +76,7 @@ impl ToTokens for Event {
 )]
 pub(crate) struct Identified {
     ident: Ident,
-    #[darling(with = "identifier_parser")]
+    #[darling(with = "identifier::macros::identifier_parse")]
     identifier: String,
 }
 
@@ -124,23 +121,7 @@ impl Identified {
 
 impl ToTokens for Identified {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(Self::identifier(&self.ident, &self.identifier));
-    }
-}
-
-// Parser
-
-fn identifier_parser(meta: &syn::Meta) -> darling::Result<String> {
-    match meta {
-        Meta::List(MetaList { tokens, .. }) => {
-            let tokens = &tokens.clone().into_iter().collect::<Vec<_>>()[..];
-
-            match tokens {
-                [TokenTree::Ident(ident)] => Ok(ident.to_string()),
-                _ => Err(darling::Error::unsupported_shape("identifier")),
-            }
-        }
-        _ => Err(darling::Error::unexpected_type("name-value")),
+        tokens.append_all(Identified::identifier(&self.ident, &self.identifier));
     }
 }
 
@@ -152,7 +133,8 @@ fn identifier_parser(meta: &syn::Meta) -> darling::Result<String> {
 #[darling(attributes(tagged), forward_attrs(allow, doc), supports(struct_named))]
 pub(crate) struct Tagged {
     ident: Ident,
-    tags: Option<HashMap<String, List<Tag>>>,
+    #[darling(map = "tag::macros::tags_map")]
+    tags: Option<HashMap<Ident, List<Tag>>>,
 }
 
 impl Tagged {
@@ -162,56 +144,19 @@ impl Tagged {
 }
 
 impl Tagged {
-    fn tags(ident: &Ident, tags: Option<&HashMap<String, List<Tag>>>) -> TokenStream {
+    fn tags(ident: &Ident, tags: Option<&HashMap<Ident, List<Tag>>>) -> TokenStream {
+        let tag = tag::macros::tags_fold(ident, tags);
+        let tag_count = tag.len();
+
         let tag_type = quote! { eventric_stream::event::Tag };
         let error_type = quote! { eventric_stream::error::Error };
-
-        let identity_fn = quote! { std::convert::identity };
-        let cow_type = quote! { std::borrow::Cow };
-
-        let mut tags_count = 0usize;
-
-        let tags = tags
-            .as_ref()
-            .map(|tags| {
-                tags.iter()
-                    .fold(TokenStream::new(), |mut tokens, (prefix, tags)| {
-                        for tag in tags.as_ref() {
-                            match tag {
-                                Tag::Expr(expr) => tokens.append_all(quote! {
-                                    {
-                                        let prefix = #prefix;
-                                        let value = #identity_fn::<for<'a> fn(&'a #ident) -> #cow_type<'a, _>>(#expr)(&self);
-                                        let tag = #tag_type::new(format!("{prefix}:{value}"))?;
-
-                                        tags.push(tag);
-                                    }
-                                }),
-                                Tag::Ident(ident) => tokens.append_all(quote! {
-                                    {
-                                        let prefix = #prefix;
-                                        let value = &self.#ident;
-                                        let tag = #tag_type::new(format!("{prefix}:{value}"))?;
-
-                                        tags.push(tag);
-                                    }
-                                }),
-                            }
-
-                            tags_count += 1;
-                        }
-
-                        tokens
-                    })
-            })
-            .unwrap_or_default();
 
         quote! {
             impl eventric_surface::event::Tagged for #ident {
                 fn tags(&self) -> Result<Vec<#tag_type>, #error_type> {
-                    let mut tags = Vec::with_capacity(#tags_count);
+                    let mut tags = Vec::with_capacity(#tag_count);
 
-                    #tags
+                  #(tags.push(#tag?);)*
 
                     Ok(tags)
                 }
@@ -222,33 +167,6 @@ impl Tagged {
 
 impl ToTokens for Tagged {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(Self::tags(&self.ident, self.tags.as_ref()));
-    }
-}
-
-// Tag
-
-#[derive(Debug)]
-pub enum Tag {
-    Expr(ExprClosure),
-    Ident(Ident),
-}
-
-impl Parse for Tag {
-    fn parse(stream: ParseStream<'_>) -> syn::Result<Self> {
-        if let Ok(mut expr) = ExprClosure::parse(stream) {
-            let body = &expr.body;
-            let body = syn::parse(quote! { { #body }.into() }.into())?;
-
-            *expr.body = body;
-
-            return Ok(Self::Expr(expr));
-        }
-
-        if let Ok(ident) = Ident::parse(stream) {
-            return Ok(Self::Ident(ident));
-        }
-
-        Err(syn::Error::new(Span::call_site(), "Unexpected Tag Format"))
+        tokens.append_all(Tagged::tags(&self.ident, self.tags.as_ref()));
     }
 }

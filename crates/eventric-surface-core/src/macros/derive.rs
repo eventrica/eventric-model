@@ -45,5 +45,10 @@ pub fn tagged(input: &DeriveInput) -> TokenStream {
 
 #[must_use]
 pub fn projection(input: &DeriveInput) -> TokenStream {
-    emit_impl_or_error!(projection::Derive::new(input))
+    emit_impl_or_error!(projection::macros::Projection::new(input))
+}
+
+#[must_use]
+pub fn query_source(input: &DeriveInput) -> TokenStream {
+    emit_impl_or_error!(projection::macros::QuerySource::new(input))
 }

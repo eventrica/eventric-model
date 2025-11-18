@@ -40,3 +40,8 @@ pub fn tagged(input: TokenStream) -> TokenStream {
 pub fn projection(input: TokenStream) -> TokenStream {
     macros::derive::projection(&parse_macro_input!(input)).into()
 }
+
+#[proc_macro_derive(QuerySource, attributes(query_source))]
+pub fn query_source(input: TokenStream) -> TokenStream {
+    macros::derive::query_source(&parse_macro_input!(input)).into()
+}

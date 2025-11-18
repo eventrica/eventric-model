@@ -1,24 +1,21 @@
-use darling::{
-    Error,
-    FromDeriveInput,
+pub(crate) mod macros;
+pub(crate) mod query;
+
+use eventric_stream::{
+    error::Error,
+    stream::query::Query,
 };
-use proc_macro2::TokenStream;
-use quote::ToTokens;
-use syn::DeriveInput;
 
 // =================================================================================================
 // Projection
 // =================================================================================================
 
-#[derive(Debug, FromDeriveInput)]
-pub(crate) struct Derive {}
+// Projection
 
-impl Derive {
-    pub fn new(input: &DeriveInput) -> Result<Self, Error> {
-        Self::from_derive_input(input)
-    }
-}
+pub trait Projection: QuerySource {}
 
-impl ToTokens for Derive {
-    fn to_tokens(&self, _tokens: &mut TokenStream) {}
+// Query Source
+
+pub trait QuerySource {
+    fn query(&self) -> Result<Query, Error>;
 }

@@ -1,5 +1,7 @@
 pub(crate) mod codec;
+pub(crate) mod identifier;
 pub(crate) mod macros;
+pub(crate) mod tag;
 
 use eventric_stream::{
     error::Error,

@@ -14,7 +14,6 @@ use eventric_stream::{
         PersistentEvent,
         Specifier,
     },
-    stream::query::Query,
 };
 use eventric_surface::event::{
     Codec,
@@ -58,10 +57,6 @@ pub trait Decision<'a> {
 
 pub trait Update<'a>: Decision<'a> {
     fn update(&mut self, event: Self::Event);
-}
-
-pub trait GetQuery {
-    fn query(&self) -> Result<Query, Error>;
 }
 
 // Temporary Convenience Traits

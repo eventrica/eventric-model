@@ -31,24 +31,27 @@ where
     }
 }
 
-impl<T> Parse for List<T>
-where
-    T: Parse,
-{
-    fn parse(stream: ParseStream<'_>) -> syn::Result<Self> {
-        let items = Punctuated::<T, Comma>::parse_terminated(stream)?;
-        let items = items.into_iter().collect();
-        let items = Self(items);
-
-        Ok(items)
-    }
-}
-
 impl<T> FromMeta for List<T>
 where
     T: Parse,
 {
     fn from_meta(meta: &Meta) -> darling::Result<Self> {
-        syn::parse2::<List<T>>(meta.require_list()?.tokens.clone()).map_err(darling::Error::custom)
+        let list = meta.require_list()?;
+        let list = list.tokens.clone();
+
+        syn::parse2::<List<T>>(list).map_err(darling::Error::custom)
+    }
+}
+
+impl<T> Parse for List<T>
+where
+    T: Parse,
+{
+    fn parse(stream: ParseStream<'_>) -> syn::Result<Self> {
+        let list = Punctuated::<T, Comma>::parse_terminated(stream)?;
+        let list = list.into_iter().collect();
+        let list = Self(list);
+
+        Ok(list)
     }
 }

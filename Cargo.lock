@@ -211,19 +211,14 @@ version = "0.1.0"
 dependencies = [
  "any-range",
  "bytes",
- "darling",
  "dashmap",
  "derive_more",
  "double-ended-peekable",
  "eventric-core",
  "fancy_constructor",
  "fjall",
- "proc-macro2",
- "quote",
  "rand",
  "rapidhash",
- "self_cell",
- "syn",
  "thiserror",
 ]
 
@@ -231,7 +226,10 @@ dependencies = [
 name = "eventric-stream-macros"
 version = "0.1.0"
 dependencies = [
+ "darling",
  "eventric-stream-core",
+ "proc-macro2",
+ "quote",
  "syn",
 ]
 
@@ -249,15 +247,11 @@ dependencies = [
 name = "eventric-surface-core"
 version = "0.1.0"
 dependencies = [
- "darling",
  "derive_more",
  "eventric-stream",
  "fancy_constructor",
- "proc-macro2",
- "quote",
  "serde",
  "serde_json",
- "syn",
  "thiserror",
 ]
 
@@ -278,8 +272,10 @@ dependencies = [
 name = "eventric-surface-macros"
 version = "0.1.0"
 dependencies = [
- "eventric-surface-core",
+ "darling",
+ "eventric-stream",
  "proc-macro2",
+ "quote",
  "syn",
 ]
 
@@ -303,9 +299,9 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
 name = "fjall"
-version = "3.0.0-pre.6"
+version = "3.0.0-pre.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa378471f104bd153550309f05d2dd7b60fb41af719f86c3e0ce926a58cba57b"
+checksum = "38fab709044a8e2caa4544c7b352360775967a833bfe6a20d3fc6248882b55d6"
 dependencies = [
  "byteorder-lite",
  "byteview",
@@ -438,9 +434,9 @@ checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
 
 [[package]]
 name = "lsm-tree"
-version = "3.0.0-pre.6"
+version = "3.0.0-pre.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7899d35cab5473500924607a7e17384c1e3e26d43b9c1c790dd43be6d15e9b8e"
+checksum = "16d54fa339f44103a194d3e7f208a33c666391a9d9ddb2621f956f4d223a407f"
 dependencies = [
  "byteorder-lite",
  "byteview",
@@ -763,9 +759,9 @@ dependencies = [
 
 [[package]]
 name = "sfa"
-version = "0.0.3"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b84349eedbb0664e9febec9c385e8a6644d0496281965ed28b1b20a0108264a9"
+checksum = "86cc3fab8d5eb0e19832083e29d69607305b01ae6a16d5790b3e5374c5da3d91"
 dependencies = [
  "byteorder-lite",
  "log",

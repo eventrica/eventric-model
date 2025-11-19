@@ -34,14 +34,14 @@ pub trait Identified {
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(identified), supports(struct_named))]
-pub(crate) struct IdentifiedDerive {
+pub struct IdentifiedDerive {
     ident: Ident,
     #[darling(with = "parse")]
     identifier: String,
 }
 
 impl IdentifiedDerive {
-    pub fn new(input: &DeriveInput) -> darling::Result<Self> {
+    pub(crate) fn new(input: &DeriveInput) -> darling::Result<Self> {
         Self::from_derive_input(input).and_then(|identifier| {
             IdentifiedDerive::validate(&identifier.identifier.clone(), identifier)
         })
@@ -49,7 +49,7 @@ impl IdentifiedDerive {
 }
 
 impl IdentifiedDerive {
-    pub fn identifier(ident: &Ident, identifier: &str) -> TokenStream {
+    pub(crate) fn identifier(ident: &Ident, identifier: &str) -> TokenStream {
         let cell_type = quote! {std::sync::OnceLock };
         let identifier_type = quote! { eventric_stream::event::Identifier };
         let error_type = quote! { eventric_stream::error::Error };
@@ -67,7 +67,7 @@ impl IdentifiedDerive {
 }
 
 impl IdentifiedDerive {
-    pub fn validate<T>(ident: &str, ok: T) -> darling::Result<T> {
+    pub(crate) fn validate<T>(ident: &str, ok: T) -> darling::Result<T> {
         Self::validate_identifier(ident)?;
 
         Ok(ok)

@@ -28,7 +28,7 @@ use eventric_surface::{
     projection::{
         Dispatch,
         Projection,
-        QuerySource,
+        Queried,
         Recognize,
         Update,
     },

@@ -37,7 +37,7 @@ use crate::{
 // Query
 // =================================================================================================
 
-pub trait QuerySource {
+pub trait Queried {
     fn query(&self) -> Result<Query, Error>;
 }
 
@@ -45,30 +45,30 @@ pub trait QuerySource {
 // Query Macros
 // =================================================================================================
 
-// Query Source
+// Queried
 
 #[derive(Debug, FromDeriveInput)]
-#[darling(attributes(query_source), supports(struct_named))]
-pub struct QuerySourceDerive {
+#[darling(attributes(queried), supports(struct_named))]
+pub struct QueriedDerive {
     ident: Ident,
     query: QueryDefinition,
 }
 
-impl QuerySourceDerive {
-    pub fn new(input: &DeriveInput) -> darling::Result<Self> {
+impl QueriedDerive {
+    pub(crate) fn new(input: &DeriveInput) -> darling::Result<Self> {
         Self::from_derive_input(input)
     }
 }
 
-impl QuerySourceDerive {
-    pub fn query_source(ident: &Ident, query: &QueryDefinition) -> TokenStream {
+impl QueriedDerive {
+    pub(crate) fn queried(ident: &Ident, query: &QueryDefinition) -> TokenStream {
         let query = IdentAndQueryDefinition(ident, query);
 
         let query_type = quote! { eventric_stream::stream::query::Query };
         let error_type = quote! { eventric_stream::error::Error };
 
         quote! {
-            impl eventric_surface::projection::QuerySource for #ident {
+            impl eventric_surface::projection::Queried for #ident {
                 fn query(&self) -> Result<#query_type, #error_type> {
                     #query
                 }
@@ -77,9 +77,9 @@ impl QuerySourceDerive {
     }
 }
 
-impl ToTokens for QuerySourceDerive {
+impl ToTokens for QueriedDerive {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(QuerySourceDerive::query_source(&self.ident, &self.query));
+        tokens.append_all(QueriedDerive::queried(&self.ident, &self.query));
     }
 }
 

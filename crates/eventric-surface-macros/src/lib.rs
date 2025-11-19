@@ -19,17 +19,17 @@ use syn::parse_macro_input;
 
 #[proc_macro_derive(Event, attributes(event))]
 pub fn event(input: TokenStream) -> TokenStream {
-    macros::derive::event(&parse_macro_input!(input)).into()
+    macros::event_derive(&parse_macro_input!(input)).into()
 }
 
 #[proc_macro_derive(Identified, attributes(identified))]
 pub fn identified(input: TokenStream) -> TokenStream {
-    macros::derive::identified(&parse_macro_input!(input)).into()
+    macros::identified_derive(&parse_macro_input!(input)).into()
 }
 
 #[proc_macro_derive(Tagged, attributes(tagged))]
 pub fn tagged(input: TokenStream) -> TokenStream {
-    macros::derive::tagged(&parse_macro_input!(input)).into()
+    macros::tagged_derive(&parse_macro_input!(input)).into()
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -38,10 +38,10 @@ pub fn tagged(input: TokenStream) -> TokenStream {
 
 #[proc_macro_derive(Projection, attributes(projection))]
 pub fn projection(input: TokenStream) -> TokenStream {
-    macros::derive::projection(&parse_macro_input!(input)).into()
+    macros::projection_derive(&parse_macro_input!(input)).into()
 }
 
 #[proc_macro_derive(QuerySource, attributes(query_source))]
 pub fn query_source(input: TokenStream) -> TokenStream {
-    macros::derive::query_source(&parse_macro_input!(input)).into()
+    macros::query_source_derive(&parse_macro_input!(input)).into()
 }

@@ -27,7 +27,7 @@ pub mod projection {
     pub use eventric_surface_core::projection::{
         Dispatch,
         Projection,
-        QuerySource,
+        Queried,
         Recognize,
         Update,
     };

@@ -45,20 +45,23 @@ pub trait Tagged {
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(tagged), supports(struct_named))]
-pub(crate) struct TaggedDerive {
+pub struct TaggedDerive {
     ident: Ident,
     #[darling(map = "map")]
     tags: Option<HashMap<Ident, List<TagValueSource>>>,
 }
 
 impl TaggedDerive {
-    pub fn new(input: &DeriveInput) -> darling::Result<Self> {
+    pub(crate) fn new(input: &DeriveInput) -> darling::Result<Self> {
         Self::from_derive_input(input)
     }
 }
 
 impl TaggedDerive {
-    pub fn tags(ident: &Ident, tags: Option<&HashMap<Ident, List<TagValueSource>>>) -> TokenStream {
+    pub(crate) fn tags(
+        ident: &Ident,
+        tags: Option<&HashMap<Ident, List<TagValueSource>>>,
+    ) -> TokenStream {
         let tag = fold(ident, tags);
         let tag_count = tag.len();
 

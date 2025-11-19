@@ -2,15 +2,12 @@
 
 pub(crate) mod codec;
 pub(crate) mod identifier;
+pub(crate) mod specifier;
 pub(crate) mod tag;
 
 use std::collections::HashMap;
 
 use darling::FromDeriveInput;
-use eventric_stream::{
-    error::Error,
-    event::Specifier,
-};
 use proc_macro2::TokenStream;
 use quote::{
     ToTokens,
@@ -38,24 +35,7 @@ use crate::{
 // Event
 // =================================================================================================
 
-// Event
-
 pub trait Event: DeserializeOwned + Identified + Tagged + Serialize {}
-
-// Specified
-
-pub trait Specified {
-    fn specifier() -> Result<Specifier, Error>;
-}
-
-impl<T> Specified for T
-where
-    T: Identified,
-{
-    fn specifier() -> Result<Specifier, Error> {
-        T::identifier().cloned().map(Specifier::new)
-    }
-}
 
 // =================================================================================================
 // Event Macros
@@ -104,5 +84,6 @@ pub use self::{
         JsonCodec,
     },
     identifier::Identified,
+    specifier::Specified,
     tag::Tagged,
 };

@@ -1,5 +1,6 @@
 #![allow(clippy::needless_continue)]
 
+pub(crate) mod dispatch;
 pub(crate) mod query;
 
 use std::any::Any;
@@ -27,8 +28,8 @@ use crate::{
         Event,
     },
     projection::query::{
+        QueriedDerive,
         QueryDefinition,
-        QuerySourceDerive,
     },
 };
 
@@ -38,13 +39,9 @@ use crate::{
 
 // Projection
 
-pub trait Projection: QuerySource {}
+pub trait Projection: Dispatch + Recognize + Queried {}
 
 // Dispatch
-
-pub trait Dispatch {
-    fn dispatch(&mut self, event: &Box<dyn Any>);
-}
 
 // Recognise
 
@@ -105,7 +102,7 @@ impl ToTokens for ProjectionDerive {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.append_all(ProjectionDerive::projection(&self.ident));
         tokens.append_all(ProjectionDerive::update(&self.ident, &self.query));
-        tokens.append_all(QuerySourceDerive::query_source(&self.ident, &self.query));
+        tokens.append_all(QueriedDerive::queried(&self.ident, &self.query));
     }
 }
 
@@ -113,4 +110,7 @@ impl ToTokens for ProjectionDerive {
 
 // Re-Exports
 
-pub use self::query::QuerySource;
+pub use self::{
+    dispatch::Dispatch,
+    query::Queried,
+};

@@ -1,9 +1,6 @@
 #![allow(clippy::needless_continue)]
 
-use std::collections::{
-    HashMap,
-    HashSet,
-};
+use std::collections::HashMap;
 
 use darling::{
     FromDeriveInput,
@@ -73,40 +70,13 @@ impl ToTokens for QueryDerive {
 
 // -------------------------------------------------------------------------------------------------
 
-// Query Definition
-
-#[derive(Debug, FromMeta)]
-pub struct QueryDefinition {
-    #[darling(multiple)]
-    select: Vec<SelectorDefinition>,
-}
-
-impl QueryDefinition {
-    #[must_use]
-    pub fn events(&self) -> Vec<Path> {
-        self.select
-            .iter()
-            .flat_map(|selector| selector.events.as_ref())
-            .cloned()
-            .collect::<HashSet<_>>()
-            .into_iter()
-            .collect()
-    }
-
-    pub fn selectors(&self) -> &Vec<SelectorDefinition> {
-        &self.select
-    }
-}
-
-// -------------------------------------------------------------------------------------------------
-
 // Selector Definition
 
 #[derive(Debug, FromMeta)]
 pub struct SelectorDefinition {
-    events: List<Path>,
+    pub events: List<Path>,
     #[darling(map = "tag::map")]
-    filter: Option<HashMap<Ident, List<TagDefinition>>>,
+    pub filter: Option<HashMap<Ident, List<TagDefinition>>>,
 }
 
 // Selector Definition Composites

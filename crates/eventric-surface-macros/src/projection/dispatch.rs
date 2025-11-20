@@ -36,7 +36,7 @@ impl DispatchDerive {
 impl DispatchDerive {
     #[must_use]
     pub fn dispatch(ident: &Ident, event: &Vec<Path>) -> TokenStream {
-        let dispatch_trait = format_ident!("Dispatch{ident}");
+        let dispatch_trait = format_ident!("{ident}Dispatch");
 
         let dispatch_event_type = quote! { eventric_surface::projection::DispatchEvent };
         let update_trait = quote! { eventric_surface::projection::Update };
@@ -45,7 +45,6 @@ impl DispatchDerive {
             trait #dispatch_trait: #(#update_trait<#event>)+* {}
 
             impl #dispatch_trait for #ident {}
-
             impl eventric_surface::projection::Dispatch for #ident {
                 fn dispatch(&mut self, event: &#dispatch_event_type) {
                     match event {

@@ -16,6 +16,7 @@ use eventric_stream::{
     },
 };
 use eventric_surface::{
+    decision::Decision,
     event::{
         Codec,
         Event,
@@ -55,17 +56,17 @@ pub struct CourseRegistered {
     pub capacity: u8,
 }
 
-// #[derive(new, Debug, Deserialize, Event, Serialize)]
-// #[event(identifier(course_removed), tags(course_id(id)))]
-// pub struct CourseRemoved {
-//     #[new(into)]
-//     pub id: String,
-// }
+#[derive(new, Debug, Deserialize, Event, Serialize)]
+#[event(identifier(course_withdrawn), tags(course_id(id)))]
+pub struct CourseWithdrawn {
+    #[new(into)]
+    pub id: String,
+}
 
-// Decisions
+// Projections
 
 #[derive(new, Debug, Projection)]
-#[projection(query(select(events(CourseRegistered), filter(course_id(id)))))]
+#[projection(select(events(CourseRegistered, CourseWithdrawn), filter(course_id(id))))]
 pub struct CourseExists {
     #[new(default)]
     pub exists: bool,
@@ -79,11 +80,23 @@ impl Update<CourseRegistered> for CourseExists {
     }
 }
 
-// impl Update<CourseRemoved> for CourseExists {
-//     fn update(&mut self, _: UpdateEvent<'_, CourseRemoved>) {
-//         self.exists = false;
-//     }
-// }
+impl Update<CourseWithdrawn> for CourseExists {
+    fn update(&mut self, _: UpdateEvent<'_, CourseWithdrawn>) {
+        self.exists = false;
+    }
+}
+
+// Decisions
+
+#[derive(new, Debug, Decision)]
+#[decision(projection(CourseExists: |x| CourseExists::new(&x.id)))]
+pub struct RegisterCourse {
+    #[new(into)]
+    pub id: String,
+    #[new(into)]
+    pub title: String,
+    pub capacity: u8,
+}
 
 // Example...
 

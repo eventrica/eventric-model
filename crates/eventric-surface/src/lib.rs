@@ -4,6 +4,10 @@
 // Eventric Surface
 // =================================================================================================
 
+pub mod decision {
+    pub use eventric_surface_macros::Decision;
+}
+
 pub mod event {
     pub use eventric_surface_core::event::{
         Codec,

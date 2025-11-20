@@ -7,6 +7,7 @@
 #![deny(clippy::missing_safety_doc)]
 #![allow(missing_docs)]
 
+pub(crate) mod decision;
 pub(crate) mod event;
 pub(crate) mod projection;
 pub(crate) mod util;
@@ -30,6 +31,7 @@ macro_rules! emit_impl_or_error {
 
 // Event
 
+#[rustfmt::skip]
 #[proc_macro_derive(Event, attributes(event))]
 pub fn event(input: TokenStream) -> TokenStream {
     emit_impl_or_error!(event::EventDerive::new(&parse_macro_input!(input))).into()
@@ -45,6 +47,14 @@ pub fn identifier(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(Tags, attributes(tags))]
 pub fn tags(input: TokenStream) -> TokenStream {
     emit_impl_or_error!(event::tag::TagsDerive::new(&parse_macro_input!(input))).into()
+}
+
+// Decision
+
+#[rustfmt::skip]
+#[proc_macro_derive(Decision, attributes(decision))]
+pub fn decision(input: TokenStream) -> TokenStream {
+    emit_impl_or_error!(decision::DecisionDerive::new(&parse_macro_input!(input))).into()
 }
 
 // Projection

@@ -18,6 +18,7 @@ eventric-surface        = { path = "crates/eventric-surface" }
 eventric-surface-core   = { path = "crates/eventric-surface-core" }
 eventric-surface-macros = { path = "crates/eventric-surface-macros" }
 fancy_constructor       = { version = "2" }
+heck                    = { version = "0.5" }
 proc-macro2             = { version = "1" }
 quote                   = { version = "1" }
 serde                   = { version = "1", features = ["derive"] }

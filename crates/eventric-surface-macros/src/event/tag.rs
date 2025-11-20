@@ -86,7 +86,7 @@ impl Parse for TagDefinition {
     fn parse(stream: ParseStream<'_>) -> syn::Result<Self> {
         if let Ok(mut expr) = ExprClosure::parse(stream) {
             let body = &expr.body;
-            let body = syn::parse(quote! { { #body }.into() }.into())?;
+            let body = syn::parse2(quote! { { #body }.into() })?;
 
             *expr.body = body;
 

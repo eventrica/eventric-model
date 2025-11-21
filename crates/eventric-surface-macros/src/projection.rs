@@ -20,12 +20,12 @@ use syn::{
 };
 
 use crate::projection::{
-    dispatch::DispatchDerive,
+    dispatch::Dispatch,
     query::{
-        QueryDerive,
-        SelectorDefinition,
+        Query,
+        Selector,
     },
-    recognize::RecognizeDerive,
+    recognize::Recognize,
 };
 
 // =================================================================================================
@@ -34,19 +34,19 @@ use crate::projection::{
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(projection), supports(struct_named))]
-pub struct ProjectionDerive {
+pub struct Projection {
     ident: Ident,
     #[darling(multiple)]
-    select: Vec<SelectorDefinition>,
+    select: Vec<Selector>,
 }
 
-impl ProjectionDerive {
+impl Projection {
     pub fn new(input: &DeriveInput) -> darling::Result<Self> {
         Self::from_derive_input(input)
     }
 }
 
-impl ProjectionDerive {
+impl Projection {
     #[must_use]
     pub fn events(&self) -> Vec<Path> {
         self.select
@@ -58,12 +58,12 @@ impl ProjectionDerive {
             .collect()
     }
 
-    pub fn selectors(&self) -> &Vec<SelectorDefinition> {
+    pub fn selectors(&self) -> &Vec<Selector> {
         &self.select
     }
 }
 
-impl ProjectionDerive {
+impl Projection {
     fn projection(ident: &Ident) -> TokenStream {
         quote! {
             impl eventric_surface::projection::Projection for #ident {}
@@ -71,12 +71,12 @@ impl ProjectionDerive {
     }
 }
 
-impl ToTokens for ProjectionDerive {
+impl ToTokens for Projection {
     #[rustfmt::skip]
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(ProjectionDerive::projection(&self.ident));
-        tokens.append_all(DispatchDerive::dispatch(&self.ident, &self.events()));
-        tokens.append_all(QueryDerive::query(&self.ident, self.selectors()));
-        tokens.append_all(RecognizeDerive::recognize(&self.ident, &self.events()));
+        tokens.append_all(Projection::projection(&self.ident));
+        tokens.append_all(Dispatch::dispatch(&self.ident, &self.events()));
+        tokens.append_all(Query::query(&self.ident, self.selectors()));
+        tokens.append_all(Recognize::recognize(&self.ident, &self.events()));
     }
 }

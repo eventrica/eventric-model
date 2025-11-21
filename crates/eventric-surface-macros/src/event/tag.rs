@@ -29,21 +29,21 @@ use crate::util::List;
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(tags), supports(struct_named))]
-pub struct TagsDerive {
+pub struct Tags {
     ident: Ident,
     #[darling(map = "map")]
-    tags: Option<HashMap<Ident, List<TagDefinition>>>,
+    tags: Option<HashMap<Ident, List<Tag>>>,
 }
 
-impl TagsDerive {
+impl Tags {
     pub fn new(input: &DeriveInput) -> darling::Result<Self> {
         Self::from_derive_input(input)
     }
 }
 
-impl TagsDerive {
+impl Tags {
     #[must_use]
-    pub fn tags(ident: &Ident, tags: Option<&HashMap<Ident, List<TagDefinition>>>) -> TokenStream {
+    pub fn tags(ident: &Ident, tags: Option<&HashMap<Ident, List<Tag>>>) -> TokenStream {
         let tag = fold(ident, tags);
         let tag_count = tag.len();
 
@@ -64,9 +64,9 @@ impl TagsDerive {
     }
 }
 
-impl ToTokens for TagsDerive {
+impl ToTokens for Tags {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(TagsDerive::tags(&self.ident, self.tags.as_ref()));
+        tokens.append_all(Tags::tags(&self.ident, self.tags.as_ref()));
     }
 }
 
@@ -75,12 +75,12 @@ impl ToTokens for TagsDerive {
 // Tag
 
 #[derive(Debug)]
-pub enum TagDefinition {
+pub enum Tag {
     ExprClosure(ExprClosure),
     Ident(Ident),
 }
 
-impl Parse for TagDefinition {
+impl Parse for Tag {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         if let Ok(mut expr) = ExprClosure::parse(input) {
             let body = &expr.body;
@@ -105,21 +105,21 @@ impl Parse for TagDefinition {
 
 // Tag Composites
 
-pub struct IntoTagTokens<'a>(pub &'a Ident, pub &'a Ident, pub &'a TagDefinition);
+pub struct TagInitialize<'a>(pub &'a Ident, pub &'a Ident, pub &'a Tag);
 
-impl ToTokens for IntoTagTokens<'_> {
+impl ToTokens for TagInitialize<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let IntoTagTokens(ident, prefix, tag) = *self;
+        let TagInitialize(ident, prefix, tag) = *self;
 
         let tag_macro = quote! { eventric_stream::event::tag };
         let identity_fn = quote! { std::convert::identity };
         let cow_type = quote! { std::borrow::Cow };
 
         match tag {
-            TagDefinition::ExprClosure(expr) => tokens.append_all(quote! {
+            Tag::ExprClosure(expr) => tokens.append_all(quote! {
                 #tag_macro!(#prefix, #identity_fn::<for<'a> fn(&'a #ident) -> #cow_type<'a, _>>(#expr)(&self))
             }),
-            TagDefinition::Ident(ident) => tokens.append_all(quote! {
+            Tag::Ident(ident) => tokens.append_all(quote! {
                 #tag_macro!(#prefix, &self.#ident)
             }),
         }
@@ -130,9 +130,7 @@ impl ToTokens for IntoTagTokens<'_> {
 
 // Tag Functions
 
-pub fn map(
-    tags: Option<HashMap<String, List<TagDefinition>>>,
-) -> Option<HashMap<Ident, List<TagDefinition>>> {
+pub fn map(tags: Option<HashMap<String, List<Tag>>>) -> Option<HashMap<Ident, List<Tag>>> {
     tags.map(|tags| {
         tags.into_iter()
             .map(|(prefix, tags)| (format_ident!("{prefix}"), tags))
@@ -142,13 +140,13 @@ pub fn map(
 
 pub fn fold<'a>(
     ident: &'a Ident,
-    tags: Option<&'a HashMap<Ident, List<TagDefinition>>>,
-) -> Vec<IntoTagTokens<'a>> {
+    tags: Option<&'a HashMap<Ident, List<Tag>>>,
+) -> Vec<TagInitialize<'a>> {
     tags.as_ref()
         .map(|tags| {
             tags.iter().fold(Vec::new(), |mut acc, (prefix, tags)| {
                 for tag in tags.as_ref() {
-                    acc.push(IntoTagTokens(ident, prefix, tag));
+                    acc.push(TagInitialize(ident, prefix, tag));
                 }
 
                 acc

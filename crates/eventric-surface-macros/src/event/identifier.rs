@@ -1,7 +1,7 @@
 #![allow(clippy::needless_continue)]
 
 use darling::FromDeriveInput;
-use eventric_stream::event::Identifier;
+use eventric_stream::event;
 use proc_macro2::{
     TokenStream,
     TokenTree,
@@ -23,29 +23,29 @@ use syn::{
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(identifier), supports(struct_named))]
-pub struct IdentifierDerive {
+pub struct Identifier {
     ident: Ident,
     #[darling(with = "parse")]
     identifier: String,
 }
 
-impl IdentifierDerive {
+impl Identifier {
     pub fn new(input: &DeriveInput) -> darling::Result<Self> {
-        Self::from_derive_input(input).and_then(|identifier| {
-            IdentifierDerive::validate(&identifier.identifier.clone(), identifier)
-        })
+        Self::from_derive_input(input)
+            .and_then(|identifier| Self::validate(&identifier.identifier.clone(), identifier))
     }
 }
 
-impl IdentifierDerive {
+impl Identifier {
     #[must_use]
-    pub fn identifier(ident: &Ident, identifier: &str) -> TokenStream {
+    pub fn identifier(event_type: &Ident, identifier: &str) -> TokenStream {
         let cell_type = quote! {std::sync::OnceLock };
-        let identifier_type = quote! { eventric_stream::event::Identifier };
         let error_type = quote! { eventric_stream::error::Error };
+        let identifier_trait = quote! { eventric_surface::event::Identifier };
+        let identifier_type = quote! { eventric_stream::event::Identifier };
 
         quote! {
-            impl eventric_surface::event::Identifier for #ident {
+            impl #identifier_trait for #event_type {
                 fn identifier() -> Result<&'static #identifier_type, #error_type> {
                     static IDENTIFIER: #cell_type<#identifier_type> = #cell_type::new();
 
@@ -56,21 +56,21 @@ impl IdentifierDerive {
     }
 }
 
-impl IdentifierDerive {
+impl Identifier {
     pub fn validate<T>(ident: &str, ok: T) -> darling::Result<T> {
         Self::validate_identifier(ident).map(|()| ok)
     }
 
     fn validate_identifier(ident: &str) -> darling::Result<()> {
-        Identifier::new(ident)
+        event::Identifier::new(ident)
             .map(|_| ())
             .map_err(darling::Error::custom)
     }
 }
 
-impl ToTokens for IdentifierDerive {
+impl ToTokens for Identifier {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(IdentifierDerive::identifier(&self.ident, &self.identifier));
+        tokens.append_all(Identifier::identifier(&self.ident, &self.identifier));
     }
 }
 

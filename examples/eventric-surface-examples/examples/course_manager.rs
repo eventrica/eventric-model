@@ -101,41 +101,6 @@ impl eventric_surface::decision::Query for RegisterCourse {
     }
 }
 
-impl eventric_surface::decision::Update for RegisterCourse {
-    fn update<C>(
-        &self,
-        codec: &C,
-        event: &eventric_stream::event::PersistentEvent,
-        projections: &mut Self::Projections,
-    ) -> Result<(), eventric_stream::error::Error>
-    where
-        C: eventric_surface::event::Codec,
-    {
-        let mut dispatch_event = None;
-
-        // Repeat per projection
-
-        {
-            if dispatch_event.is_none() {
-                dispatch_event = eventric_surface::projection::Recognize::recognize(
-                    &projections.course_exists,
-                    codec,
-                    event,
-                )?;
-            }
-
-            if let Some(dispatch_event) = dispatch_event {
-                eventric_surface::projection::Dispatch::dispatch(
-                    &mut projections.course_exists,
-                    &dispatch_event,
-                );
-            }
-        }
-
-        Ok(())
-    }
-}
-
 // -------------------------------------------------------------------------------------------------
 
 // Temporary Example Logic...

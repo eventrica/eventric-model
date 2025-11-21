@@ -21,7 +21,7 @@ use syn::{
 use crate::{
     event::{
         tag,
-        tag::TagDefinition,
+        tag::Tag,
     },
     util::List,
 };
@@ -32,24 +32,24 @@ use crate::{
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(query), supports(struct_named))]
-pub struct QueryDerive {
+pub struct Query {
     ident: Ident,
     #[darling(multiple)]
-    select: Vec<SelectorDefinition>,
+    select: Vec<Selector>,
 }
 
-impl QueryDerive {
+impl Query {
     pub fn new(input: &DeriveInput) -> darling::Result<Self> {
         Self::from_derive_input(input)
     }
 }
 
-impl QueryDerive {
+impl Query {
     #[must_use]
-    pub fn query(ident: &Ident, selectors: &[SelectorDefinition]) -> TokenStream {
-        let selector = selectors
+    pub fn query(ident: &Ident, selectors: &[Selector]) -> TokenStream {
+        let selector_initialize = selectors
             .iter()
-            .map(|selector| IntoSelectorTokens(ident, selector));
+            .map(|selector| SelectorInitialize(ident, selector));
 
         let query_type = quote! { eventric_stream::stream::query::Query };
         let error_type = quote! { eventric_stream::error::Error };
@@ -57,16 +57,16 @@ impl QueryDerive {
         quote! {
             impl eventric_surface::projection::Query for #ident {
                 fn query(&self) -> Result<#query_type, #error_type> {
-                    #query_type::new([#(#selector?),*])
+                    #query_type::new([#(#selector_initialize?),*])
                 }
             }
         }
     }
 }
 
-impl ToTokens for QueryDerive {
+impl ToTokens for Query {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(QueryDerive::query(&self.ident, &self.select));
+        tokens.append_all(Query::query(&self.ident, &self.select));
     }
 }
 
@@ -75,19 +75,19 @@ impl ToTokens for QueryDerive {
 // Selector
 
 #[derive(Debug, FromMeta)]
-pub struct SelectorDefinition {
+pub struct Selector {
     pub events: List<Path>,
     #[darling(map = "tag::map")]
-    pub filter: Option<HashMap<Ident, List<TagDefinition>>>,
+    pub filter: Option<HashMap<Ident, List<Tag>>>,
 }
 
 // Selector Composites
 
-pub struct IntoSelectorTokens<'a>(pub &'a Ident, pub &'a SelectorDefinition);
+pub struct SelectorInitialize<'a>(pub &'a Ident, pub &'a Selector);
 
-impl ToTokens for IntoSelectorTokens<'_> {
+impl ToTokens for SelectorInitialize<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let IntoSelectorTokens(ident, selector) = *self;
+        let SelectorInitialize(ident, selector) = *self;
 
         let event = selector.events.as_ref();
         let tag = tag::fold(ident, selector.filter.as_ref());

@@ -1,21 +1,26 @@
 #![allow(clippy::needless_continue)]
 
 pub(crate) mod projections;
+pub(crate) mod update;
 
 use darling::FromDeriveInput;
 use proc_macro2::TokenStream;
 use quote::{
     ToTokens,
     TokenStreamExt as _,
+    quote,
 };
 use syn::{
     DeriveInput,
     Ident,
 };
 
-use crate::decision::projections::{
-    ProjectionDefinition,
-    ProjectionsDerive,
+use crate::decision::{
+    projections::{
+        Projection,
+        Projections,
+    },
+    update::Update,
 };
 
 // =================================================================================================
@@ -24,21 +29,31 @@ use crate::decision::projections::{
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(decision), supports(struct_named))]
-pub struct DecisionDerive {
+pub struct Decision {
     ident: Ident,
-    #[darling(multiple)]
-    projection: Vec<ProjectionDefinition>,
+    #[darling(multiple, rename = "projection")]
+    projections: Vec<Projection>,
 }
 
-impl DecisionDerive {
+impl Decision {
     pub fn new(input: &DeriveInput) -> darling::Result<Self> {
         Self::from_derive_input(input)
     }
 }
 
-impl ToTokens for DecisionDerive {
+impl Decision {
+    pub fn decision(ident: &Ident) -> TokenStream {
+        quote! {
+            impl eventric_surface::decision::Decision for #ident {}
+        }
+    }
+}
+
+impl ToTokens for Decision {
     #[rustfmt::skip]
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(ProjectionsDerive::projections(&self.ident, &self.projection));
+        tokens.append_all(Decision::decision(&self.ident));
+        tokens.append_all(Projections::projections(&self.ident, &self.projections));
+        tokens.append_all(Update::update(&self.ident, &self.projections));
     }
 }

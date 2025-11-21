@@ -21,21 +21,21 @@ use crate::util::List;
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(recognize), supports(struct_named))]
-pub struct RecognizeDerive {
+pub struct Recognize {
     ident: Ident,
     events: List<Path>,
 }
 
-impl RecognizeDerive {
+impl Recognize {
     pub fn new(input: &DeriveInput) -> darling::Result<Self> {
         Self::from_derive_input(input)
     }
 }
 
-impl RecognizeDerive {
+impl Recognize {
     #[must_use]
     pub fn recognize(ident: &Ident, event: &[Path]) -> TokenStream {
-        let event_clause = event.iter().map(IntoEventClauseTokens);
+        let recognize_match_arm = event.iter().map(RecognizeMatchArm);
 
         let codec_trait = quote! {eventric_surface::event::Codec };
         let dispatch_event_type = quote! { eventric_surface::projection::DispatchEvent };
@@ -50,7 +50,7 @@ impl RecognizeDerive {
                     C: #codec_trait,
                 {
                     let event = match event {
-                      #(#event_clause),*
+                        #(#recognize_match_arm),*
                         _ => None,
                     };
 
@@ -61,7 +61,7 @@ impl RecognizeDerive {
     }
 }
 
-impl ToTokens for RecognizeDerive {
+impl ToTokens for Recognize {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.append_all(Self::recognize(&self.ident, self.events.as_ref()));
     }
@@ -69,11 +69,11 @@ impl ToTokens for RecognizeDerive {
 
 // Recognize Composites
 
-pub struct IntoEventClauseTokens<'a>(&'a Path);
+pub struct RecognizeMatchArm<'a>(&'a Path);
 
-impl ToTokens for IntoEventClauseTokens<'_> {
+impl ToTokens for RecognizeMatchArm<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let IntoEventClauseTokens(event) = *self;
+        let RecognizeMatchArm(event) = *self;
 
         let identifier_trait = quote! { eventric_surface::event::Identifier };
         let dispatch_event_type = quote! { eventric_surface::projection::DispatchEvent };

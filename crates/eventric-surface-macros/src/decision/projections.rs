@@ -35,30 +35,32 @@ use syn::{
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(projections), supports(struct_named))]
-pub struct ProjectionsDerive {
+pub struct Projections {
     ident: Ident,
-    #[darling(multiple)]
-    projection: Vec<ProjectionDefinition>,
+    #[darling(multiple, rename = "projection")]
+    projections: Vec<Projection>,
 }
 
-impl ProjectionsDerive {
+impl Projections {
     pub fn new(input: &DeriveInput) -> darling::Result<Self> {
         Self::from_derive_input(input)
     }
 }
 
-impl ProjectionsDerive {
-    pub fn projections(ident: &Ident, projections: &[ProjectionDefinition]) -> TokenStream {
-        let projections_type = format_ident!("{ident}Projections");
+impl Projections {
+    pub fn projections(decision_type: &Ident, projections: &[Projection]) -> TokenStream {
+        let projections_type = format_ident!("{decision_type}Projections");
 
-        let projection_ident = projections.iter().map(|p| &p.ident);
-        let projection_path = projections.iter().map(|p| &p.path);
+        let projection_field_name = projections.iter().map(|p| &p.field_name);
+        let projection_field_type = projections.iter().map(|p| &p.field_type);
         let projection_initializer = projections
             .iter()
-            .map(|projection| IntoProjectionInitializerTokens(ident, projection));
+            .map(|projection| ProjectionInitializer(decision_type, projection));
+
+        let projections_trait = quote! { eventric_surface::decision::Projections };
 
         quote! {
-            impl eventric_surface::decision::Projections for #ident {
+            impl #projections_trait for #decision_type {
                 type Projections = #projections_type;
 
                 fn projections(&self) -> Self::Projections {
@@ -68,11 +70,11 @@ impl ProjectionsDerive {
 
             #[derive(Debug)]
             pub struct #projections_type {
-                #(pub #projection_ident: #projection_path),*
+                #(pub #projection_field_name: #projection_field_type),*
             }
 
             impl #projections_type {
-                fn new(decision: &#ident) -> Self {
+                fn new(decision: &#decision_type) -> Self {
                     Self {
                         #(#projection_initializer),*
                     }
@@ -82,10 +84,10 @@ impl ProjectionsDerive {
     }
 }
 
-impl ToTokens for ProjectionsDerive {
+impl ToTokens for Projections {
     #[rustfmt::skip]
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(ProjectionsDerive::projections(&self.ident, &self.projection));
+        tokens.append_all(Projections::projections(&self.ident, &self.projections));
     }
 }
 
@@ -94,30 +96,29 @@ impl ToTokens for ProjectionsDerive {
 // Projection
 
 #[derive(Debug)]
-pub struct ProjectionDefinition {
-    expr: ExprClosure,
-    ident: Ident,
-    path: Path,
+pub struct Projection {
+    pub field_name: Ident,
+    pub field_type: Path,
+    pub initializer: ExprClosure,
 }
 
-impl FromMeta for ProjectionDefinition {
+impl FromMeta for Projection {
     fn from_meta(meta: &Meta) -> darling::Result<Self> {
         let list = meta.require_list()?;
-        let list = list.tokens.clone();
+        let input = list.tokens.clone();
 
-        syn::parse2(list).map_err(darling::Error::custom)
+        syn::parse2(input).map_err(darling::Error::custom)
     }
 }
 
-impl Parse for ProjectionDefinition {
+impl Parse for Projection {
     #[allow(clippy::match_bool, clippy::single_match_else)]
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let path = Path::parse(input)?;
-
-        let ident = match input.peek(At) {
+        let field_type = Path::parse(input)?;
+        let field_name = match input.peek(At) {
             true => At::parse(input).and_then(|_| Ident::parse(input))?,
             _ => {
-                let segment = path.segments.last().expect("ident");
+                let segment = field_type.segments.last().expect("ident");
                 let ident = segment.ident.to_string();
 
                 format_ident!("{}", AsSnakeCase(ident).to_string())
@@ -126,31 +127,38 @@ impl Parse for ProjectionDefinition {
 
         let _ = Colon::parse(input)?;
 
-        let expr = match ExprClosure::parse(input) {
+        let initializer = match ExprClosure::parse(input) {
             Ok(expr) => expr,
             _ => Expr::parse(input).and_then(|expr| syn::parse2(quote! { |this| #expr }))?,
         };
 
-        Ok(Self { expr, ident, path })
+        Ok(Self {
+            field_name,
+            field_type,
+            initializer,
+        })
     }
 }
 
 // Projection Composites
 
-pub struct IntoProjectionInitializerTokens<'a>(&'a Ident, &'a ProjectionDefinition);
+pub struct ProjectionInitializer<'a>(&'a Ident, &'a Projection);
 
-impl ToTokens for IntoProjectionInitializerTokens<'_> {
+impl ToTokens for ProjectionInitializer<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let IntoProjectionInitializerTokens(input, projection) = *self;
-
-        let expr = &projection.expr;
-        let ident = &projection.ident;
-        let path = &projection.path;
+        let ProjectionInitializer(
+            decision_type,
+            Projection {
+                field_name,
+                field_type,
+                initializer,
+            },
+        ) = *self;
 
         let identity_fn = quote! { std::convert::identity };
 
         tokens.append_all(quote! {
-            #ident: #identity_fn::<fn(&#input) -> #path>(#expr)(decision)
+            #field_name: #identity_fn::<fn(&#decision_type) -> #field_type>(#initializer)(decision)
         });
     }
 }

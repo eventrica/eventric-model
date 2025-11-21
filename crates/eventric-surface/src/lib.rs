@@ -6,6 +6,7 @@
 
 pub mod decision {
     pub use eventric_surface_core::decision::{
+        Decision,
         Projections,
         Query,
         Update,
@@ -13,6 +14,7 @@ pub mod decision {
     pub use eventric_surface_macros::{
         Decision,
         Projections,
+        Update,
     };
 }
 

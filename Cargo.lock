@@ -192,6 +192,7 @@ dependencies = [
 [[package]]
 name = "eventric-core"
 version = "0.1.0"
+source = "git+https://github.com/eventrica/eventric-core.git#735125023193228540ff430e9ae904b302e19e37"
 dependencies = [
  "thiserror",
 ]
@@ -199,6 +200,7 @@ dependencies = [
 [[package]]
 name = "eventric-stream"
 version = "0.1.0"
+source = "git+https://github.com/eventrica/eventric-stream.git#67f6a2a93b1c28d8b735ca713611084e2d6e0c68"
 dependencies = [
  "eventric-stream-core",
  "eventric-stream-macros",
@@ -208,6 +210,7 @@ dependencies = [
 [[package]]
 name = "eventric-stream-core"
 version = "0.1.0"
+source = "git+https://github.com/eventrica/eventric-stream.git#67f6a2a93b1c28d8b735ca713611084e2d6e0c68"
 dependencies = [
  "any-range",
  "bytes",
@@ -225,6 +228,7 @@ dependencies = [
 [[package]]
 name = "eventric-stream-macros"
 version = "0.1.0"
+source = "git+https://github.com/eventrica/eventric-stream.git#67f6a2a93b1c28d8b735ca713611084e2d6e0c68"
 dependencies = [
  "darling",
  "eventric-stream-core",

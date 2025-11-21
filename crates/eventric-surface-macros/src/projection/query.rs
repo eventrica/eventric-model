@@ -46,8 +46,10 @@ impl QueryDerive {
 
 impl QueryDerive {
     #[must_use]
-    pub fn query(ident: &Ident, selectors: &Vec<SelectorDefinition>) -> TokenStream {
-        let query = IntoQueryTokens(ident, selectors);
+    pub fn query(ident: &Ident, selectors: &[SelectorDefinition]) -> TokenStream {
+        let selector = selectors
+            .iter()
+            .map(|selector| IntoSelectorTokens(ident, selector));
 
         let query_type = quote! { eventric_stream::stream::query::Query };
         let error_type = quote! { eventric_stream::error::Error };
@@ -55,7 +57,7 @@ impl QueryDerive {
         quote! {
             impl eventric_surface::projection::Query for #ident {
                 fn query(&self) -> Result<#query_type, #error_type> {
-                    #query
+                    #query_type::new([#(#selector?),*])
                 }
             }
         }
@@ -70,7 +72,7 @@ impl ToTokens for QueryDerive {
 
 // -------------------------------------------------------------------------------------------------
 
-// Selector Definition
+// Selector
 
 #[derive(Debug, FromMeta)]
 pub struct SelectorDefinition {
@@ -79,27 +81,9 @@ pub struct SelectorDefinition {
     pub filter: Option<HashMap<Ident, List<TagDefinition>>>,
 }
 
-// Selector Definition Composites
+// Selector Composites
 
-struct IntoQueryTokens<'a>(pub &'a Ident, pub &'a Vec<SelectorDefinition>);
-
-impl ToTokens for IntoQueryTokens<'_> {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let IntoQueryTokens(ident, selectors) = *self;
-
-        let selector = selectors
-            .iter()
-            .map(|selector| IntoSelectorTokens(ident, selector));
-
-        let query_type = quote! { eventric_stream::stream::query::Query };
-
-        tokens.append_all(quote! {
-            #query_type::new([#(#selector?),*])
-        });
-    }
-}
-
-struct IntoSelectorTokens<'a>(pub &'a Ident, pub &'a SelectorDefinition);
+pub struct IntoSelectorTokens<'a>(pub &'a Ident, pub &'a SelectorDefinition);
 
 impl ToTokens for IntoSelectorTokens<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {

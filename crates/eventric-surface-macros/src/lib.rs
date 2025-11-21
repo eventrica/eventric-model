@@ -57,6 +57,12 @@ pub fn decision(input: TokenStream) -> TokenStream {
     emit_impl_or_error!(decision::DecisionDerive::new(&parse_macro_input!(input))).into()
 }
 
+#[rustfmt::skip]
+#[proc_macro_derive(Projections, attributes(projections))]
+pub fn projections(input: TokenStream) -> TokenStream {
+    emit_impl_or_error!(decision::projections::ProjectionsDerive::new(&parse_macro_input!(input))).into()
+}
+
 // Projection
 
 #[rustfmt::skip]

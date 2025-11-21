@@ -10,7 +10,10 @@ pub mod decision {
         Query,
         Update,
     };
-    pub use eventric_surface_macros::Decision;
+    pub use eventric_surface_macros::{
+        Decision,
+        Projections,
+    };
 }
 
 pub mod event {

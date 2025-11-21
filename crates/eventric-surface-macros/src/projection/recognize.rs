@@ -34,24 +34,23 @@ impl RecognizeDerive {
 
 impl RecognizeDerive {
     #[must_use]
-    pub fn recognize(ident: &Ident, event: &Vec<Path>) -> TokenStream {
-        let codec_trait = quote! {eventric_surface::event::Codec };
-        let identifier_trait = quote! { eventric_surface::event::Identifier };
+    pub fn recognize(ident: &Ident, event: &[Path]) -> TokenStream {
+        let event_clause = event.iter().map(IntoEventClauseTokens);
 
+        let codec_trait = quote! {eventric_surface::event::Codec };
         let dispatch_event_type = quote! { eventric_surface::projection::DispatchEvent };
         let error_type = quote! { eventric_stream::error::Error };
         let persistent_event_type = quote! { eventric_stream::event::PersistentEvent };
+        let recognize_trait = quote! { eventric_surface::projection::Recognize };
 
         quote! {
-            impl eventric_surface::projection::Recognize for #ident {
+            impl #recognize_trait for #ident {
                 fn recognize<C>(&self, codec: &C, event: &#persistent_event_type) -> Result<Option<#dispatch_event_type>, #error_type>
                 where
                     C: #codec_trait,
                 {
                     let event = match event {
-                      #(_ if event.identifier() == <#event as #identifier_trait>::identifier()? => {
-                            Some(#dispatch_event_type::from_persistent_event::<C, #event>(codec, event)?)
-                        }),*
+                      #(#event_clause),*
                         _ => None,
                     };
 
@@ -65,5 +64,24 @@ impl RecognizeDerive {
 impl ToTokens for RecognizeDerive {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.append_all(Self::recognize(&self.ident, self.events.as_ref()));
+    }
+}
+
+// Recognize Composites
+
+pub struct IntoEventClauseTokens<'a>(&'a Path);
+
+impl ToTokens for IntoEventClauseTokens<'_> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let IntoEventClauseTokens(event) = *self;
+
+        let identifier_trait = quote! { eventric_surface::event::Identifier };
+        let dispatch_event_type = quote! { eventric_surface::projection::DispatchEvent };
+
+        tokens.append_all(quote! {
+            _ if event.identifier() == <#event as #identifier_trait>::identifier()? => {
+                Some(#dispatch_event_type::from_persistent_event::<C, #event>(codec, event)?)
+            }
+        });
     }
 }

@@ -92,14 +92,6 @@ pub struct RegisterCourse {
 // At least initially, event versioning will be ignored entirely (all versions
 // will be set to zero for now, until a meaningful model is in place).
 
-impl eventric_surface::decision::Projections for RegisterCourse {
-    type Projections = RegisterCourseProjections;
-
-    fn projections(&self) -> Self::Projections {
-        Self::Projections::new(self)
-    }
-}
-
 impl eventric_surface::decision::Query for RegisterCourse {
     fn query(
         &self,

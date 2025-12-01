@@ -2,8 +2,8 @@
 //! module-level documentation.
 
 pub(crate) mod dispatch;
-pub(crate) mod query;
 pub(crate) mod recognize;
+pub(crate) mod select;
 pub(crate) mod update;
 
 // =================================================================================================
@@ -12,7 +12,7 @@ pub(crate) mod update;
 
 // Projection
 
-pub trait Projection: Dispatch + Recognize + Query {}
+pub trait Projection: Dispatch + Recognize + Select {}
 
 // -------------------------------------------------------------------------------------------------
 
@@ -23,8 +23,8 @@ pub use self::{
         Dispatch,
         DispatchEvent,
     },
-    query::Query,
     recognize::Recognize,
+    select::Select,
     update::{
         Update,
         UpdateEvent,

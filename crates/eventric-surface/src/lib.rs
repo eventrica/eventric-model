@@ -8,14 +8,10 @@ pub mod decision {
     pub use eventric_surface_core::decision::{
         Decision,
         Projections,
-        Query,
+        Select,
         Update,
     };
-    pub use eventric_surface_macros::{
-        Decision,
-        Projections,
-        Update,
-    };
+    pub use eventric_surface_macros::Decision;
 }
 
 pub mod event {
@@ -26,11 +22,7 @@ pub mod event {
         Specifier,
         Tags,
     };
-    pub use eventric_surface_macros::{
-        Event,
-        Identifier,
-        Tags,
-    };
+    pub use eventric_surface_macros::Event;
 
     pub mod json {
         pub use eventric_surface_core::event::JsonCodec as Codec;
@@ -42,15 +34,10 @@ pub mod projection {
         Dispatch,
         DispatchEvent,
         Projection,
-        Query,
         Recognize,
+        Select,
         Update,
         UpdateEvent,
     };
-    pub use eventric_surface_macros::{
-        Dispatch,
-        Projection,
-        Query,
-        Recognize,
-    };
+    pub use eventric_surface_macros::Projection;
 }

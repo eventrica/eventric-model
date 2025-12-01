@@ -1,6 +1,6 @@
 use eventric_stream::{
     error::Error,
-    event::PersistentEvent,
+    stream::select::EventMasked,
 };
 
 use crate::{
@@ -16,7 +16,7 @@ pub trait Update: Projections {
     fn update<C>(
         &self,
         codec: &C,
-        event: &PersistentEvent,
+        event: &EventMasked,
         projections: &mut Self::Projections,
     ) -> Result<(), Error>
     where

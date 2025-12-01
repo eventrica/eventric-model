@@ -2,14 +2,14 @@
 //! module-level documentation.
 
 pub(crate) mod projections;
-pub(crate) mod query;
+pub(crate) mod select;
 pub(crate) mod update;
 
 // =================================================================================================
 // Decision
 // =================================================================================================
 
-pub trait Decision: Projections + Query + Update {}
+pub trait Decision: Projections + Select + Update {}
 
 // -------------------------------------------------------------------------------------------------
 
@@ -17,6 +17,6 @@ pub trait Decision: Projections + Query + Update {}
 
 pub use self::{
     projections::Projections,
-    query::Query,
+    select::Select,
     update::Update,
 };

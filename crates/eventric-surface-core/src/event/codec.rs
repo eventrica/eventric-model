@@ -1,9 +1,9 @@
 use eventric_stream::{
     error::Error,
     event::{
+        self,
+        CandidateEvent,
         Data,
-        EphemeralEvent,
-        PersistentEvent,
         Version,
     },
 };
@@ -17,7 +17,7 @@ use crate::event::Event;
 pub trait Codec {
     // Encode
 
-    fn encode<E>(&self, event: E) -> Result<EphemeralEvent, Error>
+    fn encode<E>(&self, event: E) -> Result<CandidateEvent, Error>
     where
         E: Event,
     {
@@ -27,7 +27,7 @@ pub trait Codec {
         let tags = event.tags()?;
         let version = Version::default();
 
-        Ok(EphemeralEvent::new(data, identifier, tags, version))
+        Ok(CandidateEvent::new(data, identifier, tags, version))
     }
 
     fn encode_data<E>(&self, event: &E) -> Result<Data, Error>
@@ -36,7 +36,7 @@ pub trait Codec {
 
     // Decode
 
-    fn decode<E>(&self, event: &PersistentEvent) -> Result<E, Error>
+    fn decode<E>(&self, event: &event::Event) -> Result<E, Error>
     where
         E: Event,
     {

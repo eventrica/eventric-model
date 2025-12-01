@@ -1,6 +1,6 @@
 use eventric_stream::{
     error::Error,
-    event::PersistentEvent,
+    stream::select::EventMasked,
 };
 
 use crate::{
@@ -13,11 +13,7 @@ use crate::{
 // =================================================================================================
 
 pub trait Recognize {
-    fn recognize<C>(
-        &self,
-        codec: &C,
-        event: &PersistentEvent,
-    ) -> Result<Option<DispatchEvent>, Error>
+    fn recognize<C>(&self, codec: &C, event: &EventMasked) -> Result<Option<DispatchEvent>, Error>
     where
         C: Codec;
 }

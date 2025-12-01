@@ -1,14 +1,15 @@
+//! See the `eventric-surface` crate for full documentation, including
+//! module-level documentation.
+
 use eventric_stream::{
     error::Error,
-    stream::query,
+    stream::select::Selection,
 };
-
-use crate::decision::projections::Projections;
 
 // =================================================================================================
 // Query
 // =================================================================================================
 
-pub trait Query: Projections {
-    fn query(&self, projections: &Self::Projections) -> Result<query::Query, Error>;
+pub trait Select {
+    fn select(&self) -> Result<Selection, Error>;
 }

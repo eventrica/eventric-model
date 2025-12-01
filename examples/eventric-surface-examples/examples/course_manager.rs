@@ -32,7 +32,7 @@ use serde::{
 // Events
 
 #[derive(new, Debug, Deserialize, Event, Serialize)]
-#[event(identifier(course_registered), tags(course_id(&this.id)))]
+#[event(identifier(course_registered), tags(course(&this.id)))]
 pub struct CourseRegistered {
     #[new(into)]
     pub id: String,
@@ -42,7 +42,7 @@ pub struct CourseRegistered {
 }
 
 #[derive(new, Debug, Deserialize, Event, Serialize)]
-#[event(identifier(course_withdrawn), tags(course_id(&this.id)))]
+#[event(identifier(course_withdrawn), tags(course(&this.id)))]
 pub struct CourseWithdrawn {
     #[new(into)]
     pub id: String,
@@ -51,7 +51,7 @@ pub struct CourseWithdrawn {
 // Projections
 
 #[derive(new, Debug, Projection)]
-#[projection(select(events(CourseRegistered, CourseWithdrawn), filter(course_id(&this.id))))]
+#[projection(select(events(CourseRegistered, CourseWithdrawn), filter(course(&this.id))))]
 pub struct CourseExists {
     #[new(default)]
     pub exists: bool,
@@ -85,24 +85,6 @@ pub struct RegisterCourse {
 
 // -------------------------------------------------------------------------------------------------
 
-// Temporary Manual Implementations
-
-// NOTES
-
-// At least initially, event versioning will be ignored entirely (all versions
-// will be set to zero for now, until a meaningful model is in place).
-
-impl eventric_surface::decision::Query for RegisterCourse {
-    fn query(
-        &self,
-        projections: &Self::Projections,
-    ) -> Result<eventric_stream::stream::query::Query, eventric_stream::error::Error> {
-        eventric_surface::projection::Query::query(&projections.course_exists)
-    }
-}
-
-// -------------------------------------------------------------------------------------------------
-
 // Temporary Example Logic...
 
 pub fn main() -> Result<(), eventric_stream::error::Error> {
@@ -124,14 +106,16 @@ pub fn main() -> Result<(), eventric_stream::error::Error> {
 
     println!("current projections state: {projections:#?}");
 
-    let query = eventric_surface::decision::Query::query(&decision, &projections)?;
-    let condition = eventric_stream::stream::query::Condition::default().matches(&query);
+    let query = eventric_surface::decision::Select::select(&decision, &projections)?;
 
     let mut position = None;
 
     println!("running decision query: {query:#?}");
 
-    for event in stream.query(&condition, None) {
+    let (events, select) =
+        eventric_stream::stream::iterate::IterateSelect::iter_select(&stream, query, None);
+
+    for event in events {
         let event = event?;
 
         eventric_surface::decision::Update::update(&decision, &codec, &event, &mut projections)?;
@@ -147,22 +131,19 @@ pub fn main() -> Result<(), eventric_stream::error::Error> {
     } else {
         println!("decision valid, creating condition to append");
 
-        let mut condition = eventric_stream::stream::append::Condition::new(&query);
-
-        if let Some(position) = position {
-            println!("extending append condition with after position");
-
-            condition = condition.after(position);
-        }
-
         println!("appending new events");
 
-        let event = CourseRegistered::new(course_id, "My Course", 30);
-        let event = eventric_surface::event::Codec::encode(&codec, event)?;
+        let course_registered = CourseRegistered::new(course_id, "My Course", 30);
+        let course_registered = eventric_surface::event::Codec::encode(&codec, course_registered)?;
 
-        println!("appending event: {event:?}");
+        println!("appending event: {course_registered:?}");
 
-        stream.append([&event], Some(&condition))?;
+        eventric_stream::stream::append::AppendSelect::append_select(
+            &mut stream,
+            [course_registered],
+            select,
+            position,
+        )?;
     }
 
     Ok(())

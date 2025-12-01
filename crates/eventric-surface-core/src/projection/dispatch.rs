@@ -3,7 +3,8 @@ use std::any::Any;
 use eventric_stream::{
     error::Error,
     event::{
-        PersistentEvent,
+        self,
+        Identifier,
         Position,
         Timestamp,
     },
@@ -33,9 +34,10 @@ pub trait Dispatch {
 #[derive(new, Debug)]
 #[new(const_fn, vis(pub(crate)))]
 pub struct DispatchEvent {
-    event: Box<dyn Any>,
-    position: Position,
-    timestamp: Timestamp,
+    pub event: Box<dyn Any>,
+    pub identifier: Identifier,
+    pub position: Position,
+    pub timestamp: Timestamp,
 }
 
 impl DispatchEvent {
@@ -49,7 +51,7 @@ impl DispatchEvent {
             .map(|inner_event| UpdateEvent::new(inner_event, self.position, self.timestamp))
     }
 
-    pub fn from_persistent_event<C, E>(codec: &C, event: &PersistentEvent) -> Result<Self, Error>
+    pub fn from_event<C, E>(codec: &C, event: &event::Event) -> Result<Self, Error>
     where
         C: Codec,
         E: Event + 'static,
@@ -57,6 +59,13 @@ impl DispatchEvent {
         codec
             .decode::<E>(event)
             .map(|inner_event| Box::new(inner_event) as Box<dyn Any>)
-            .map(|inner_event| Self::new(inner_event, *event.position(), *event.timestamp()))
+            .map(|inner_event| {
+                Self::new(
+                    inner_event,
+                    event.identifier().clone(),
+                    *event.position(),
+                    *event.timestamp(),
+                )
+            })
     }
 }

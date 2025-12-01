@@ -7,6 +7,8 @@
 pub mod decision {
     pub use eventric_model_core::decision::{
         Decision,
+        Execute,
+        Events,
         Projections,
         Select,
         Update,

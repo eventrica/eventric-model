@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use eventric_stream::{
     error::Error,
     stream::select::EventMasked,
@@ -13,7 +15,11 @@ use crate::{
 // =================================================================================================
 
 pub trait Recognize {
-    fn recognize<C>(&self, codec: &C, event: &EventMasked) -> Result<Option<DispatchEvent>, Error>
+    fn recognize<C>(
+        &self,
+        codec: Arc<C>,
+        event: &EventMasked,
+    ) -> Result<Option<DispatchEvent>, Error>
     where
         C: Codec;
 }

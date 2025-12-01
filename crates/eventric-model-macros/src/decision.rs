@@ -52,7 +52,7 @@ impl Decision {
         let ident = &self.ident;
 
         quote! {
-            impl eventric_model::decision::Decision for #ident {}
+            impl ::eventric_model::decision::Decision for #ident {}
         }
     }
 
@@ -126,7 +126,7 @@ impl Decision {
             impl ::eventric_model::decision::Update for #ident {
                 fn update<C>(
                     &self,
-                    codec: &C,
+                    codec: ::std::sync::Arc<C>,
                     event: &::eventric_stream::stream::select::EventMasked,
                     projections: &mut Self::Projections
                 ) -> ::std::result::Result<(), ::eventric_stream::error::Error>

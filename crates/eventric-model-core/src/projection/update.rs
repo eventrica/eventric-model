@@ -1,5 +1,4 @@
-use std::ops::Deref;
-
+use derive_more::Deref;
 use eventric_stream::event::{
     Position,
     Timestamp,
@@ -23,12 +22,13 @@ where
 
 // Event
 
-#[derive(new, Debug)]
+#[derive(new, Debug, Deref)]
 #[new(const_fn, vis(pub(crate)))]
 pub struct UpdateEvent<'a, E>
 where
     E: Event,
 {
+    #[deref]
     event: &'a E,
     position: Position,
     timestamp: Timestamp,
@@ -46,16 +46,5 @@ where
     #[must_use]
     pub fn timestamp(&self) -> &Timestamp {
         &self.timestamp
-    }
-}
-
-impl<E> Deref for UpdateEvent<'_, E>
-where
-    E: Event,
-{
-    type Target = E;
-
-    fn deref(&self) -> &Self::Target {
-        self.event
     }
 }

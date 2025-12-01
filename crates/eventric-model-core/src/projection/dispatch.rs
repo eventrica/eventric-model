@@ -1,4 +1,7 @@
-use std::any::Any;
+use std::{
+    any::Any,
+    sync::Arc,
+};
 
 use eventric_stream::{
     error::Error,
@@ -51,7 +54,7 @@ impl DispatchEvent {
             .map(|inner_event| UpdateEvent::new(inner_event, self.position, self.timestamp))
     }
 
-    pub fn from_event<C, E>(codec: &C, event: &event::Event) -> Result<Self, Error>
+    pub fn from_event<C, E>(codec: &Arc<C>, event: &event::Event) -> Result<Self, Error>
     where
         C: Codec,
         E: Event + 'static,

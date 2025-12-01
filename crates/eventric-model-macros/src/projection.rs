@@ -102,7 +102,7 @@ impl Projection {
             impl ::eventric_model::projection::Recognize for #ident {
                 fn recognize<C>(
                     &self,
-                    codec: &C,
+                    codec: ::std::sync::Arc<C>,
                     event: &::eventric_stream::stream::select::EventMasked
                 ) -> ::std::result::Result<
                     ::std::option::Option<::eventric_model::projection::DispatchEvent>,
@@ -166,7 +166,7 @@ impl ToTokens for RecognizeMatchArm<'_> {
         tokens.append_all(quote! {
             _ if event.identifier() == <#event as ::eventric_model::event::Identifier>::identifier()? => {
                 std::option::Option::Some(
-                    ::eventric_model::projection::DispatchEvent::from_event::<C, #event>(codec, event)?
+                    ::eventric_model::projection::DispatchEvent::from_event::<C, #event>(&codec, event)?
                 )
             }
         });

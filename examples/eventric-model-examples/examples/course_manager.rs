@@ -6,10 +6,17 @@
 #![feature(once_cell_try)]
 #![feature(if_let_guard)]
 
+use std::sync::Arc;
+
 use derive_more::Debug;
 use eventric_model::{
-    decision::Decision,
+    decision::{
+        Decision,
+        Events,
+        Execute,
+    },
     event::{
+        Codec,
         Event,
         json,
     },
@@ -17,6 +24,14 @@ use eventric_model::{
         Projection,
         Update,
         UpdateEvent,
+    },
+};
+use eventric_stream::{
+    error::Error,
+    stream::{
+        Stream,
+        append::AppendSelect,
+        iterate::IterateSelect,
     },
 };
 use fancy_constructor::new;
@@ -83,68 +98,86 @@ pub struct RegisterCourse {
     pub capacity: u8,
 }
 
+impl Execute for RegisterCourse {
+    fn execute<C>(
+        &mut self,
+        context: &mut Events<C>,
+        projections: &Self::Projections,
+    ) -> Result<(), Error>
+    where
+        C: Codec,
+    {
+        if !projections.course_exists.exists {
+            context.append(CourseRegistered::new(&self.id, &self.title, self.capacity))?;
+        }
+
+        Ok(())
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+// Experimental...
+
+#[derive(new, Debug)]
+pub struct DecisionContext<'a, C>
+where
+    C: Codec,
+{
+    codec: Arc<C>,
+    stream: &'a mut Stream,
+}
+
+impl<C> DecisionContext<'_, C>
+where
+    C: Codec,
+{
+    pub fn execute<D>(&mut self, mut decision: D) -> Result<(), Error>
+    where
+        D: Decision,
+    {
+        let mut after = None;
+        let mut projections = decision.projections();
+
+        let selections = decision.select(&projections)?;
+
+        let (events, select) = self.stream.iter_select(selections, None);
+
+        for event in events {
+            let event = event?;
+            let codec = self.codec.clone();
+            let position = *event.position();
+
+            after = Some(position);
+
+            decision.update(codec, &event, &mut projections)?;
+        }
+
+        let codec = self.codec.clone();
+
+        let mut events = Events::new(codec);
+
+        decision.execute(&mut events, &projections)?;
+
+        let events = events.take();
+
+        if !events.is_empty() {
+            self.stream.append_select(events, select, after)?;
+        }
+
+        Ok(())
+    }
+}
+
 // -------------------------------------------------------------------------------------------------
 
 // Temporary Example Logic...
 
-pub fn main() -> Result<(), eventric_stream::error::Error> {
-    let codec = json::Codec;
+pub fn main() -> Result<(), Error> {
+    let codec = Arc::new(json::Codec);
 
-    let mut stream = eventric_stream::stream::Stream::builder(eventric_stream::temp_path())
-        .temporary(true)
-        .open()?;
+    let mut stream = Stream::builder("./temp").temporary(false).open()?;
+    let mut context = DecisionContext::new(codec, &mut stream);
 
-    let course_id = "some_course";
-
-    println!("creating decision");
-
-    let decision = RegisterCourse::new(course_id, "My Course", 30);
-
-    println!("creating projections");
-
-    let mut projections = eventric_model::decision::Projections::projections(&decision);
-
-    println!("current projections state: {projections:#?}");
-
-    let query = eventric_model::decision::Select::select(&decision, &projections)?;
-
-    let mut position = None;
-
-    println!("running decision query: {query:#?}");
-
-    let (events, select) =
-        eventric_stream::stream::iterate::IterateSelect::iter_select(&stream, query, None);
-
-    for event in events {
-        let event = event?;
-
-        eventric_model::decision::Update::update(&decision, &codec, &event, &mut projections)?;
-
-        position = Some(*event.position());
-    }
-
-    println!("making decision");
-    println!("current projections state: {projections:#?}");
-
-    if projections.course_exists.exists {
-        println!("decision invalid, course already exists");
-    } else {
-        println!("decision valid, creating condition to append");
-
-        println!("appending new events");
-
-        let course_registered = CourseRegistered::new(course_id, "My Course", 30);
-        let course_registered = eventric_model::event::Codec::encode(&codec, course_registered)?;
-
-        println!("appending event: {course_registered:?}");
-
-        eventric_stream::stream::append::AppendSelect::append_select(
-            &mut stream,
-            [course_registered],
-            select,
-            position,
-        )?;
-    }
-
-    Ok(())
+    context.execute(RegisterCourse::new("my_course", "My Course", 30))
 }

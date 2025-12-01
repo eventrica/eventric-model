@@ -14,6 +14,41 @@ use crate::event::Event;
 // Codec
 // =================================================================================================
 
+// trait TraitA {
+//     fn value() -> String;
+// }
+
+// trait TraitB {
+//     fn generic_fn<A>(&self, a: A)
+//     where
+//         A: TraitA;
+// }
+
+// impl<'a, T> TraitA for &'a T
+// where
+//     T: ?Sized + TraitA,
+// {
+//     fn value() -> String {
+//         <T as TraitA>::value()
+//     }
+// }
+
+// impl<'a, T> TraitB for Box<T>
+// where
+//     T: ?Sized + TraitB,
+// {
+//     fn generic_fn<A>(&self, a: A)
+//     where
+//         A: TraitA,
+//     {
+//         (**self).generic_fn(a);
+//     }
+// }
+
+// trait ErasedTraitB {
+//     fn erased_fn(&self, a: &dyn TraitA);
+// }
+
 pub trait Codec {
     // Encode
 

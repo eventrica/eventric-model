@@ -192,7 +192,7 @@ dependencies = [
 [[package]]
 name = "eventric-core"
 version = "0.1.0"
-source = "git+https://github.com/eventrica/eventric-core.git#735125023193228540ff430e9ae904b302e19e37"
+source = "git+https://github.com/eventrica/eventric-core.git#c76a28710ecfa415672842a5fbe15a7079b5543d"
 dependencies = [
  "thiserror",
 ]

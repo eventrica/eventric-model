@@ -184,6 +184,50 @@ dependencies = [
 ]
 
 [[package]]
+name = "eventric-model"
+version = "0.1.0"
+dependencies = [
+ "eventric-model-core",
+ "eventric-model-macros",
+]
+
+[[package]]
+name = "eventric-model-core"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "eventric-stream",
+ "fancy_constructor",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
+name = "eventric-model-examples"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "eventric-model",
+ "eventric-stream",
+ "fancy_constructor",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "eventric-model-macros"
+version = "0.1.0"
+dependencies = [
+ "darling",
+ "eventric-stream",
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "eventric-stream"
 version = "0.1.0"
 source = "git+https://github.com/eventrica/eventric-stream.git#e64239c59375a726c2b1e2faa1b3bcbf4f6ca2ac"
@@ -217,50 +261,6 @@ version = "0.1.0"
 source = "git+https://github.com/eventrica/eventric-stream.git#e64239c59375a726c2b1e2faa1b3bcbf4f6ca2ac"
 dependencies = [
  "darling",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "eventric-surface"
-version = "0.1.0"
-dependencies = [
- "eventric-surface-core",
- "eventric-surface-macros",
-]
-
-[[package]]
-name = "eventric-surface-core"
-version = "0.1.0"
-dependencies = [
- "derive_more",
- "eventric-stream",
- "fancy_constructor",
- "serde",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "eventric-surface-examples"
-version = "0.1.0"
-dependencies = [
- "derive_more",
- "eventric-stream",
- "eventric-surface",
- "fancy_constructor",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "eventric-surface-macros"
-version = "0.1.0"
-dependencies = [
- "darling",
- "eventric-stream",
- "heck",
  "proc-macro2",
  "quote",
  "syn",

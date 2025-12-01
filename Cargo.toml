@@ -5,25 +5,25 @@ debug = true
 debug = true
 
 [workspace]
-members  = ["crates/*", "examples/eventric-surface-examples"]
+members  = ["crates/*", "examples/*"]
 resolver = "2"
 
 [workspace.dependencies]
-assertables             = { version = "9" }
-darling                 = { version = "0.21" }
-derive_more             = { version = "2", features = ["full"] }
-eventric-stream         = { git = "https://github.com/eventrica/eventric-stream.git" }
-eventric-surface        = { path = "crates/eventric-surface" }
-eventric-surface-core   = { path = "crates/eventric-surface-core" }
-eventric-surface-macros = { path = "crates/eventric-surface-macros" }
-fancy_constructor       = { version = "2" }
-heck                    = { version = "0.5" }
-proc-macro2             = { version = "1" }
-quote                   = { version = "1" }
-serde                   = { version = "1", features = ["derive"] }
-serde_json              = { version = "1" }
-syn                     = { version = "2", features = ["derive"] }
-thiserror               = { version = "2" }
+assertables           = { version = "9" }
+darling               = { version = "0.21" }
+derive_more           = { version = "2", features = ["full"] }
+eventric-model        = { path = "crates/eventric-model" }
+eventric-model-core   = { path = "crates/eventric-model-core" }
+eventric-model-macros = { path = "crates/eventric-model-macros" }
+eventric-stream       = { git = "https://github.com/eventrica/eventric-stream.git" }
+fancy_constructor     = { version = "2" }
+heck                  = { version = "0.5" }
+proc-macro2           = { version = "1" }
+quote                 = { version = "1" }
+serde                 = { version = "1", features = ["derive"] }
+serde_json            = { version = "1" }
+syn                   = { version = "2", features = ["derive"] }
+thiserror             = { version = "2" }
 
 [workspace.lints.clippy]
 cargo       = "warn"
@@ -55,5 +55,5 @@ edition    = "2024"
 keywords   = ["event", "sourcing", "streaming"]
 license    = "AGPL-3.0-only"
 readme     = "README.md"
-repository = "https://github.com/eventrica/eventric-surface"
+repository = "https://github.com/eventrica/eventric-model"
 version    = "0.1.0"

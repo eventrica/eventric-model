@@ -52,6 +52,7 @@ impl Action {
         let ident = &self.ident;
 
         quote! {
+            #[automatically_derived]
             impl ::eventric_model::action::Action for #ident {}
         }
     }
@@ -69,6 +70,7 @@ impl Action {
             .map(|proj| ProjectionInitializer(ident, proj));
 
         quote! {
+            #[automatically_derived]
             impl ::eventric_model::action::Context for #ident {
                 type Context = #context_type;
 
@@ -83,6 +85,7 @@ impl Action {
                 #(pub #context_field_name: #context_field_type),*
             }
 
+            #[automatically_derived]
             impl ::std::ops::Deref for #context_type {
                 type Target = eventric_model::action::Events;
 
@@ -91,12 +94,14 @@ impl Action {
                 }
             }
 
+            #[automatically_derived]
             impl ::std::ops::DerefMut for #context_type {
                 fn deref_mut(&mut self) -> &mut Self::Target {
                     &mut self.events
                 }
             }
 
+            #[automatically_derived]
             impl ::core::convert::Into<::eventric_model::action::Events> for #context_type {
                 fn into(self) -> ::eventric_model::action::Events {
                     self.events
@@ -121,6 +126,7 @@ impl Action {
         let context_field_name = projections.iter().map(|p| &p.field_name);
 
         quote! {
+            #[automatically_derived]
             impl ::eventric_model::action::Select for #ident {
                 fn select(
                     &self,
@@ -145,6 +151,7 @@ impl Action {
         let context_field_index = 0..projections.len();
 
         quote! {
+            #[automatically_derived]
             impl ::eventric_model::action::Update for #ident {
                 fn update(
                     &self,

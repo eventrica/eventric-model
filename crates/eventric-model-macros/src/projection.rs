@@ -71,8 +71,10 @@ impl Projection {
         quote! {
             pub trait #dispatch_trait: #(::eventric_model::projection::Update<#event>)+* {}
 
+            #[automatically_derived]
             impl #dispatch_trait for #ident {}
 
+            #[automatically_derived]
             impl ::eventric_model::projection::Dispatch for #ident {
                 fn dispatch(&mut self, event: &::eventric_model::projection::DispatchEvent) {
                     match event {
@@ -99,6 +101,7 @@ impl Projection {
         let recognize_match_arm = event.iter().map(RecognizeMatchArm);
 
         quote! {
+            #[automatically_derived]
             impl ::eventric_model::projection::Recognize for #ident {
                 fn recognize(
                     &self,
@@ -127,6 +130,7 @@ impl Projection {
             .map(|selector| SelectorInitialize(ident, selector));
 
         quote! {
+            #[automatically_derived]
             impl ::eventric_model::projection::Select for #ident {
                 fn select(&self) -> ::std::result::Result<
                     ::eventric_stream::stream::select::Selection,

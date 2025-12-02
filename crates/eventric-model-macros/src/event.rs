@@ -53,6 +53,7 @@ impl Event {
         let ident = &self.ident;
 
         quote! {
+            #[automatically_derived]
             impl ::eventric_model::event::Event for #ident {}
         }
     }
@@ -62,6 +63,7 @@ impl Event {
         let identifier = &self.identifier;
 
         quote! {
+            #[automatically_derived]
             impl ::eventric_model::event::Identifier for #ident {
                 fn identifier() -> ::std::result::Result<
                     &'static ::eventric_stream::event::Identifier,
@@ -83,6 +85,7 @@ impl Event {
         let tag_count = tag.len();
 
         quote! {
+            #[automatically_derived]
             impl ::eventric_model::event::Tags for #ident {
                 fn tags(&self) -> ::std::result::Result<
                     ::std::vec::Vec<::eventric_stream::event::Tag>,

@@ -42,7 +42,7 @@ impl Act for DefineCourse {
 
     fn action(&mut self, context: &mut Self::Context) -> Result<Self::Ok, Self::Err> {
         if context.course_exists.exists {
-            return Err(Error::data("Course Already Exists!"));
+            return Err(Error::data("Course Already Exists"));
         }
 
         context.append(&CourseDefined::new(&self.id, self.capacity))?;
@@ -67,7 +67,7 @@ impl Act for ChangeCourseCapacity {
 
     fn action(&mut self, context: &mut Self::Context) -> Result<Self::Ok, Self::Err> {
         if !context.course_exists.exists {
-            return Err(Error::data("Course Does Not Exist!"));
+            return Err(Error::data("Course Does Not Exist"));
         }
 
         if context.course_capacity.capacity == self.new_capacity {
@@ -100,7 +100,7 @@ impl Act for SubscribeStudentToCourse {
 
     fn action(&mut self, context: &mut Self::Context) -> Result<Self::Ok, Self::Err> {
         if !context.course_exists.exists {
-            return Err(Error::data("Course Does Not Exist!"));
+            return Err(Error::data("Course Does Not Exist"));
         }
 
         if context.number_of_course_subscriptions.count >= context.course_capacity.capacity {

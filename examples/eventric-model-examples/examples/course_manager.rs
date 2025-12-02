@@ -24,8 +24,8 @@ use eventric_stream::{
     error::Error,
     stream::{
         Stream,
-        append::AppendSelect,
-        iterate::IterateSelect,
+        append::AppendSelect as _,
+        iterate::IterateSelect as _,
     },
 };
 use fancy_constructor::new;

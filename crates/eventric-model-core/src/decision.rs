@@ -18,8 +18,8 @@ pub trait Decision: Execute + Projections + Select + Update {}
 
 pub use self::{
     execute::{
-        Execute,
         Events,
+        Execute,
     },
     projections::Projections,
     select::Select,

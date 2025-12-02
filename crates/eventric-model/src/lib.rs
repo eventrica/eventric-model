@@ -6,10 +6,10 @@
 
 pub mod decision {
     pub use eventric_model_core::decision::{
+        Context,
         Decision,
         Events,
         Execute,
-        Projections,
         Select,
         Update,
     };

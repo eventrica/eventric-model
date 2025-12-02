@@ -10,7 +10,6 @@ use derive_more::Debug;
 use eventric_model::{
     decision::{
         Decision,
-        Events,
         Execute,
     },
     event::Event,
@@ -92,13 +91,12 @@ pub struct RegisterCourse {
 }
 
 impl Execute for RegisterCourse {
-    fn execute(
-        &mut self,
-        events: &mut Events,
-        projections: &Self::Projections,
-    ) -> Result<(), Error> {
-        if !projections.course_exists.exists {
-            events.append(&CourseRegistered::new(&self.id, &self.title, self.capacity))?;
+    type Err = Error;
+    type Ok = ();
+
+    fn execute(&mut self, context: &mut Self::Context) -> Result<Self::Ok, Self::Err> {
+        if !context.course_exists.exists {
+            context.append(&CourseRegistered::new(&self.id, &self.title, self.capacity))?;
         }
 
         Ok(())
@@ -115,14 +113,14 @@ pub struct DecisionContext<'a> {
 }
 
 impl DecisionContext<'_> {
-    pub fn execute<D>(&mut self, mut decision: D) -> Result<(), Error>
+    pub fn execute<D>(&mut self, mut decision: D) -> Result<D::Ok, D::Err>
     where
         D: Decision,
     {
         let mut after = None;
-        let mut projections = decision.projections();
+        let mut context = decision.context();
 
-        let selections = decision.select(&projections)?;
+        let selections = decision.select(&context)?;
 
         let (events, select) = self.stream.iter_select(selections, None);
 
@@ -132,20 +130,17 @@ impl DecisionContext<'_> {
 
             after = Some(position);
 
-            decision.update(&event, &mut projections)?;
+            decision.update(&mut context, &event)?;
         }
 
-        let mut events = Events::new();
-
-        decision.execute(&mut events, &projections)?;
-
-        let events = events.take();
+        let ok = decision.execute(&mut context)?;
+        let events = context.into().take();
 
         if !events.is_empty() {
             self.stream.append_select(events, select, after)?;
         }
 
-        Ok(())
+        Ok(ok)
     }
 }
 

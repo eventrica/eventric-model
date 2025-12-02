@@ -3,12 +3,12 @@ use eventric_stream::{
     stream::select::Selections,
 };
 
-use crate::decision::projections::Projections;
+use crate::decision::context::Context;
 
 // =================================================================================================
 // Selection
 // =================================================================================================
 
-pub trait Select: Projections {
-    fn select(&self, projections: &Self::Projections) -> Result<Selections, Error>;
+pub trait Select: Context {
+    fn select(&self, context: &Self::Context) -> Result<Selections, Error>;
 }

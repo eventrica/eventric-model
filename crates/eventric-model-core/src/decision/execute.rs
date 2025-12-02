@@ -9,7 +9,7 @@ use eventric_stream::{
 use fancy_constructor::new;
 
 use crate::{
-    decision::Projections,
+    decision::Context,
     event::Event,
 };
 
@@ -17,12 +17,14 @@ use crate::{
 // Execute
 // =================================================================================================
 
-pub trait Execute: Projections {
-    fn execute(
-        &mut self,
-        events: &mut Events,
-        projections: &Self::Projections,
-    ) -> Result<(), Error>;
+pub trait Execute: Context
+where
+    Self::Err: From<Error>,
+{
+    type Err;
+    type Ok;
+
+    fn execute(&mut self, context: &mut Self::Context) -> Result<Self::Ok, Self::Err>;
 }
 
 #[derive(new, Debug)]

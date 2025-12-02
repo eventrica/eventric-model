@@ -48,7 +48,65 @@ impl Decision {
 }
 
 impl Decision {
-    pub fn decision(&self) -> TokenStream {
+    fn context(&self) -> TokenStream {
+        let ident = &self.ident;
+        let projections = &self.projections;
+
+        let context_type = format_ident!("{ident}Context");
+
+        let context_field_name = projections.iter().map(|p| &p.field_name);
+        let context_field_type = projections.iter().map(|p| &p.field_type);
+        let context_field_init = projections
+            .iter()
+            .map(|proj| ProjectionInitializer(ident, proj));
+
+        quote! {
+            impl ::eventric_model::decision::Context for #ident {
+                type Context = #context_type;
+
+                fn context(&self) -> Self::Context {
+                    Self::Context::new(self)
+                }
+            }
+
+            #[derive(Debug)]
+            pub struct #context_type {
+                pub events: eventric_model::decision::Events,
+                #(pub #context_field_name: #context_field_type),*
+            }
+
+            impl ::std::ops::Deref for #context_type {
+                type Target = eventric_model::decision::Events;
+
+                fn deref(&self) -> &Self::Target {
+                    &self.events
+                }
+            }
+
+            impl ::std::ops::DerefMut for #context_type {
+                fn deref_mut(&mut self) -> &mut Self::Target {
+                    &mut self.events
+                }
+            }
+
+            impl ::core::convert::Into<::eventric_model::decision::Events> for #context_type {
+                fn into(self) -> ::eventric_model::decision::Events {
+                    self.events
+                }
+            }
+
+            impl #context_type {
+                pub fn new(decision: &#ident) -> Self {
+                    Self {
+                        events: eventric_model::decision::Events::new(),
+                        #(#context_field_init),*
+                    }
+                }
+            }
+        }
+    }
+
+    fn decision(&self) -> TokenStream {
         let ident = &self.ident;
 
         quote! {
@@ -56,59 +114,23 @@ impl Decision {
         }
     }
 
-    fn projections(&self) -> TokenStream {
-        let ident = &self.ident;
-        let projections = &self.projections;
-
-        let proj_type = format_ident!("{ident}Projections");
-
-        let proj_field_name = projections.iter().map(|p| &p.field_name);
-        let proj_field_type = projections.iter().map(|p| &p.field_type);
-        let proj_init = projections
-            .iter()
-            .map(|proj| ProjectionInitializer(ident, proj));
-
-        quote! {
-            impl ::eventric_model::decision::Projections for #ident {
-                type Projections = #proj_type;
-
-                fn projections(&self) -> Self::Projections {
-                    Self::Projections::new(self)
-                }
-            }
-
-            #[derive(Debug)]
-            pub struct #proj_type {
-                #(pub #proj_field_name: #proj_field_type),*
-            }
-
-            impl #proj_type {
-                fn new(decision: &#ident) -> Self {
-                    Self {
-                        #(#proj_init),*
-                    }
-                }
-            }
-        }
-    }
-
     fn select(&self) -> TokenStream {
         let ident = &self.ident;
         let projections = &self.projections;
 
-        let proj_field_name = projections.iter().map(|p| &p.field_name);
+        let context_field_name = projections.iter().map(|p| &p.field_name);
 
         quote! {
             impl ::eventric_model::decision::Select for #ident {
                 fn select(
                     &self,
-                    projections: &Self::Projections
+                    context: &Self::Context
                 ) -> ::std::result::Result<
                     ::eventric_stream::stream::select::Selections,
                     ::eventric_stream::error::Error
                 > {
                     ::eventric_stream::stream::select::Selections::new([
-                        #(::eventric_model::projection::Select::select(&projections.#proj_field_name)?),*
+                        #(::eventric_model::projection::Select::select(&context.#context_field_name)?),*
                     ])
                 }
             }
@@ -119,29 +141,29 @@ impl Decision {
         let ident = &self.ident;
         let projections = &self.projections;
 
-        let proj_field_name = projections.iter().map(|p| &p.field_name);
-        let proj_index = 0..projections.len();
+        let context_field_name = projections.iter().map(|p| &p.field_name);
+        let context_field_index = 0..projections.len();
 
         quote! {
             impl ::eventric_model::decision::Update for #ident {
                 fn update(
                     &self,
-                    event: &::eventric_stream::stream::select::EventMasked,
-                    projections: &mut Self::Projections
+                    context: &mut Self::Context,
+                    event: &::eventric_stream::stream::select::EventMasked
                 ) -> ::std::result::Result<(), ::eventric_stream::error::Error> {
                     let mut dispatch_event = None;
 
                     #({
-                        if event.mask()[#proj_index] && dispatch_event.is_none() {
+                        if event.mask()[#context_field_index] && dispatch_event.is_none() {
                             dispatch_event = ::eventric_model::projection::Recognize::recognize(
-                                &projections.#proj_field_name,
+                                &context.#context_field_name,
                                 event,
                             )?;
                         }
 
-                        if event.mask()[#proj_index] && let Some(dispatch_event) = dispatch_event {
+                        if event.mask()[#context_field_index] && let Some(dispatch_event) = dispatch_event {
                             ::eventric_model::projection::Dispatch::dispatch(
-                                &mut projections.#proj_field_name,
+                                &mut context.#context_field_name,
                                 &dispatch_event,
                             );
                         }
@@ -158,7 +180,7 @@ impl ToTokens for Decision {
     #[rustfmt::skip]
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.append_all(self.decision());
-        tokens.append_all(self.projections());
+        tokens.append_all(self.context());
         tokens.append_all(self.select());
         tokens.append_all(self.update());
     }

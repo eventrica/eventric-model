@@ -3,13 +3,12 @@ use eventric_stream::{
     stream::select::EventMasked,
 };
 
-use crate::decision::projections::Projections;
+use crate::decision::context::Context;
 
 // =================================================================================================
 // Update
 // =================================================================================================
 
-pub trait Update: Projections {
-    fn update(&self, event: &EventMasked, projections: &mut Self::Projections)
-    -> Result<(), Error>;
+pub trait Update: Context {
+    fn update(&self, context: &mut Self::Context, event: &EventMasked) -> Result<(), Error>;
 }

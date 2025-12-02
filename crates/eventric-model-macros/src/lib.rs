@@ -7,7 +7,7 @@
 #![deny(clippy::missing_safety_doc)]
 #![allow(missing_docs)]
 
-pub(crate) mod decision;
+pub(crate) mod action;
 pub(crate) mod event;
 pub(crate) mod projection;
 pub(crate) mod util;
@@ -17,7 +17,7 @@ use quote::ToTokens;
 use syn::parse_macro_input;
 
 use crate::{
-    decision::Decision,
+    action::Action,
     event::Event,
     projection::Projection,
 };
@@ -41,18 +41,18 @@ macro_rules! emit_impl_or_error {
 
 // Macros
 
+// Action
+
+#[proc_macro_derive(Action, attributes(action))]
+pub fn action(input: TokenStream) -> TokenStream {
+    emit_impl_or_error!(Action::new(&parse_macro_input!(input))).into()
+}
+
 // Event
 
 #[proc_macro_derive(Event, attributes(event))]
 pub fn event(input: TokenStream) -> TokenStream {
     emit_impl_or_error!(Event::new(&parse_macro_input!(input))).into()
-}
-
-// Decision
-
-#[proc_macro_derive(Decision, attributes(decision))]
-pub fn decision(input: TokenStream) -> TokenStream {
-    emit_impl_or_error!(Decision::new(&parse_macro_input!(input))).into()
 }
 
 // Projection

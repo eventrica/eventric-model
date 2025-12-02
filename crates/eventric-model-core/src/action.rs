@@ -1,26 +1,26 @@
 //! See the `eventric-surface` crate for full documentation, including
 //! module-level documentation.
 
+pub(crate) mod act;
 pub(crate) mod context;
-pub(crate) mod execute;
 pub(crate) mod select;
 pub(crate) mod update;
 
 // =================================================================================================
-// Decision
+// Action
 // =================================================================================================
 
-pub trait Decision: Execute + Context + Select + Update {}
+pub trait Action: Act + Context + Select + Update {}
 
 // -------------------------------------------------------------------------------------------------
 
 // Re-Exports
 
 pub use self::{
-    context::Context,
-    execute::{
+    act::Act,
+    context::{
+        Context,
         Events,
-        Execute,
     },
     select::Select,
     update::Update,

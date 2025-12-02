@@ -1,14 +1,14 @@
 use eventric_stream::{
     error::Error,
-    stream::select::Selections,
+    stream::select::EventMasked,
 };
 
-use crate::decision::context::Context;
+use crate::action::context::Context;
 
 // =================================================================================================
-// Selection
+// Update
 // =================================================================================================
 
-pub trait Select: Context {
-    fn select(&self, context: &Self::Context) -> Result<Selections, Error>;
+pub trait Update: Context {
+    fn update(&self, context: &mut Self::Context, event: &EventMasked) -> Result<(), Error>;
 }

@@ -1,3 +1,8 @@
+use std::ops::{
+    Deref,
+    DerefMut,
+};
+
 use eventric_stream::{
     error::Error,
     event::{
@@ -8,24 +13,24 @@ use eventric_stream::{
 };
 use fancy_constructor::new;
 
-use crate::{
-    decision::Context,
-    event::Event,
-};
+use crate::event::Event;
 
 // =================================================================================================
-// Execute
+// Context
 // =================================================================================================
 
-pub trait Execute: Context
+pub trait Context
 where
-    Self::Err: From<Error>,
+    Self::Context: Deref<Target = Events> + DerefMut + Into<Events>,
 {
-    type Err;
-    type Ok;
+    type Context;
 
-    fn execute(&mut self, context: &mut Self::Context) -> Result<Self::Ok, Self::Err>;
+    fn context(&self) -> Self::Context;
 }
+
+// -------------------------------------------------------------------------------------------------
+
+// Events
 
 #[derive(new, Debug)]
 pub struct Events {

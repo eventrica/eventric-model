@@ -4,31 +4,31 @@ use eventric_stream::stream::{
     iterate::IterateSelect as _,
 };
 
-use crate::decision::Decision;
+use crate::action::Action;
 
 // =================================================================================================
 // Stream
 // =================================================================================================
 
-// Executor
+// Enactor
 
-pub trait Executor {
-    fn execute<D>(&mut self, decision: D) -> Result<D::Ok, D::Err>
+pub trait Enactor {
+    fn enact<A>(&mut self, action: A) -> Result<A::Ok, A::Err>
     where
-        D: Decision;
+        A: Action;
 }
 
 // Stream
 
-impl Executor for Stream {
-    fn execute<D>(&mut self, mut decision: D) -> Result<D::Ok, D::Err>
+impl Enactor for Stream {
+    fn enact<A>(&mut self, mut action: A) -> Result<A::Ok, A::Err>
     where
-        D: Decision,
+        A: Action,
     {
         let mut after = None;
-        let mut context = decision.context();
+        let mut context = action.context();
 
-        let selections = decision.select(&context)?;
+        let selections = action.select(&context)?;
 
         let (events, select) = self.iter_select(selections, None);
 
@@ -38,10 +38,10 @@ impl Executor for Stream {
 
             after = Some(position);
 
-            decision.update(&mut context, &event)?;
+            action.update(&mut context, &event)?;
         }
 
-        let ok = decision.execute(&mut context)?;
+        let ok = action.action(&mut context)?;
         let events = context.into().take();
 
         if !events.is_empty() {

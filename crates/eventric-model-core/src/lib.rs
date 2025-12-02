@@ -6,8 +6,9 @@
 #![allow(clippy::missing_panics_doc)]
 #![allow(clippy::missing_safety_doc)]
 #![allow(missing_docs)]
+#![feature(associated_type_defaults)]
 
-pub mod decision;
+pub mod action;
 pub mod error;
 pub mod event;
 pub mod projection;

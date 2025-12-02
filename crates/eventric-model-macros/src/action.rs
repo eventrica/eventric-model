@@ -30,24 +30,32 @@ use syn::{
 };
 
 // =================================================================================================
-// Decision
+// Action
 // =================================================================================================
 
 #[derive(Debug, FromDeriveInput)]
-#[darling(attributes(decision), supports(struct_named))]
-pub struct Decision {
+#[darling(attributes(action), supports(struct_named))]
+pub struct Action {
     ident: Ident,
     #[darling(multiple, rename = "projection")]
     projections: Vec<Projection>,
 }
 
-impl Decision {
+impl Action {
     pub fn new(input: &DeriveInput) -> darling::Result<Self> {
         Self::from_derive_input(input)
     }
 }
 
-impl Decision {
+impl Action {
+    fn action(&self) -> TokenStream {
+        let ident = &self.ident;
+
+        quote! {
+            impl ::eventric_model::action::Action for #ident {}
+        }
+    }
+
     fn context(&self) -> TokenStream {
         let ident = &self.ident;
         let projections = &self.projections;
@@ -61,7 +69,7 @@ impl Decision {
             .map(|proj| ProjectionInitializer(ident, proj));
 
         quote! {
-            impl ::eventric_model::decision::Context for #ident {
+            impl ::eventric_model::action::Context for #ident {
                 type Context = #context_type;
 
                 fn context(&self) -> Self::Context {
@@ -71,12 +79,12 @@ impl Decision {
 
             #[derive(Debug)]
             pub struct #context_type {
-                pub events: eventric_model::decision::Events,
+                pub events: eventric_model::action::Events,
                 #(pub #context_field_name: #context_field_type),*
             }
 
             impl ::std::ops::Deref for #context_type {
-                type Target = eventric_model::decision::Events;
+                type Target = eventric_model::action::Events;
 
                 fn deref(&self) -> &Self::Target {
                     &self.events
@@ -89,28 +97,20 @@ impl Decision {
                 }
             }
 
-            impl ::core::convert::Into<::eventric_model::decision::Events> for #context_type {
-                fn into(self) -> ::eventric_model::decision::Events {
+            impl ::core::convert::Into<::eventric_model::action::Events> for #context_type {
+                fn into(self) -> ::eventric_model::action::Events {
                     self.events
                 }
             }
 
             impl #context_type {
-                pub fn new(decision: &#ident) -> Self {
+                pub fn new(action: &#ident) -> Self {
                     Self {
-                        events: eventric_model::decision::Events::new(),
+                        events: eventric_model::action::Events::new(),
                         #(#context_field_init),*
                     }
                 }
             }
-        }
-    }
-
-    fn decision(&self) -> TokenStream {
-        let ident = &self.ident;
-
-        quote! {
-            impl ::eventric_model::decision::Decision for #ident {}
         }
     }
 
@@ -121,7 +121,7 @@ impl Decision {
         let context_field_name = projections.iter().map(|p| &p.field_name);
 
         quote! {
-            impl ::eventric_model::decision::Select for #ident {
+            impl ::eventric_model::action::Select for #ident {
                 fn select(
                     &self,
                     context: &Self::Context
@@ -145,7 +145,7 @@ impl Decision {
         let context_field_index = 0..projections.len();
 
         quote! {
-            impl ::eventric_model::decision::Update for #ident {
+            impl ::eventric_model::action::Update for #ident {
                 fn update(
                     &self,
                     context: &mut Self::Context,
@@ -176,10 +176,10 @@ impl Decision {
     }
 }
 
-impl ToTokens for Decision {
+impl ToTokens for Action {
     #[rustfmt::skip]
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.decision());
+        tokens.append_all(self.action());
         tokens.append_all(self.context());
         tokens.append_all(self.select());
         tokens.append_all(self.update());
@@ -243,7 +243,7 @@ pub struct ProjectionInitializer<'a>(&'a Ident, &'a Projection);
 impl ToTokens for ProjectionInitializer<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let ProjectionInitializer(
-            decision_type,
+            action_type,
             Projection {
                 field_name,
                 field_type,
@@ -252,7 +252,7 @@ impl ToTokens for ProjectionInitializer<'_> {
         ) = *self;
 
         tokens.append_all(quote! {
-            #field_name: ::std::convert::identity::<fn(&#decision_type) -> #field_type>(#initializer)(decision)
+            #field_name: ::std::convert::identity::<fn(&#action_type) -> #field_type>(#initializer)(action)
         });
     }
 }

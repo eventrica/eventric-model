@@ -4,16 +4,16 @@
 // Eventric Surface
 // =================================================================================================
 
-pub mod decision {
-    pub use eventric_model_core::decision::{
+pub mod action {
+    pub use eventric_model_core::action::{
+        Act,
+        Action,
         Context,
-        Decision,
         Events,
-        Execute,
         Select,
         Update,
     };
-    pub use eventric_model_macros::Decision;
+    pub use eventric_model_macros::Action;
 }
 
 pub mod event {
@@ -40,5 +40,5 @@ pub mod projection {
 }
 
 pub mod stream {
-    pub use eventric_model_core::stream::Executor;
+    pub use eventric_model_core::stream::Enactor;
 }

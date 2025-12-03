@@ -156,19 +156,19 @@ impl Action {
                 fn update(
                     &self,
                     context: &mut Self::Context,
-                    event: &::eventric_stream::stream::select::EventMasked
+                    event: &::eventric_stream::stream::select::EventAndMask
                 ) -> ::std::result::Result<(), ::eventric_stream::error::Error> {
                     let mut dispatch_event = None;
 
                     #({
-                        if event.mask()[#context_field_index] && dispatch_event.is_none() {
+                        if event.mask[#context_field_index] && dispatch_event.is_none() {
                             dispatch_event = ::eventric_model::projection::Recognize::recognize(
                                 &context.#context_field_name,
                                 event,
                             )?;
                         }
 
-                        if event.mask()[#context_field_index] && let Some(dispatch_event) = dispatch_event.as_ref() {
+                        if event.mask[#context_field_index] && let Some(dispatch_event) = dispatch_event.as_ref() {
                             ::eventric_model::projection::Dispatch::dispatch(
                                 &mut context.#context_field_name,
                                 dispatch_event,

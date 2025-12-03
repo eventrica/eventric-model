@@ -9,7 +9,7 @@ use std::ops::{
 use eventric_stream::{
     error::Error,
     stream::select::{
-        EventMasked,
+        EventAndMask,
         Selections,
     },
 };
@@ -56,5 +56,5 @@ pub trait Select: Context {
 // Update
 
 pub trait Update: Context {
-    fn update(&self, context: &mut Self::Context, event: &EventMasked) -> Result<(), Error>;
+    fn update(&self, context: &mut Self::Context, event: &EventAndMask) -> Result<(), Error>;
 }

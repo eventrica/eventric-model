@@ -34,7 +34,7 @@ impl Enactor for Stream {
 
         for event in events {
             let event = event?;
-            let position = *event.position();
+            let position = *event.event.position();
 
             after = Some(position);
 

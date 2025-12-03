@@ -8,7 +8,7 @@ use eventric_stream::{
     error::Error,
     event,
     stream::select::{
-        EventMasked,
+        EventAndMask,
         Selection,
     },
 };
@@ -42,7 +42,7 @@ where
 // Recognize
 
 pub trait Recognize {
-    fn recognize(&self, event: &EventMasked) -> Result<Option<DispatchEvent>, Error>;
+    fn recognize(&self, event: &EventAndMask) -> Result<Option<DispatchEvent>, Error>;
 }
 
 // Select

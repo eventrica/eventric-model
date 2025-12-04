@@ -6,7 +6,7 @@ mod actions;
 mod events;
 mod projections;
 
-use eventric_model::stream::Enactor as _;
+use eventric_model::Enactor as _;
 use eventric_stream::{
     error::Error,
     stream::Stream,

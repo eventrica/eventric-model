@@ -9,10 +9,10 @@
 #![feature(associated_type_defaults)]
 
 pub mod action;
+pub mod core;
 pub mod error;
 pub mod event;
 pub mod projection;
-pub mod stream;
 
 // =================================================================================================
 // Eventric Surface Core

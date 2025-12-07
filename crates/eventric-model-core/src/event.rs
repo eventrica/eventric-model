@@ -66,8 +66,9 @@ impl Events {
     where
         E: Event,
     {
-        let data = revision::to_vec(event).map_err(|_| Error::data("serialization error"))?;
-        let data = Data::new(data)?;
+        let data = revision::to_vec(event)
+            .map_err(|err| Error::general(format!("events/append/revision: {err}")))
+            .and_then(Data::new)?;
 
         let identifier = E::identifier().cloned()?;
         let tags = event.tags()?;

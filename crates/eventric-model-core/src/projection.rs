@@ -80,7 +80,7 @@ impl DispatchEvent {
         E: Event + 'static,
     {
         revision::from_slice::<E>(event.data().as_ref())
-            .map_err(|_| Error::data("deserialization error"))
+            .map_err(|err| Error::general(format!("dispatch_event/from_event/from_slice: {err}")))
             .map(|inner_event| Box::new(inner_event) as Box<dyn Any>)
             .map(|inner_event| {
                 Self::new(

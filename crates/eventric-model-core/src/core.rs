@@ -1,6 +1,6 @@
 use eventric_stream::stream::{
     append::AppendSelect,
-    iterate::IterateSelect,
+    select::Select,
 };
 
 use crate::action::Action;
@@ -19,7 +19,7 @@ pub trait Enactor {
 
 impl<T> Enactor for T
 where
-    T: AppendSelect + IterateSelect,
+    T: AppendSelect + Select,
 {
     fn enact<A>(&mut self, mut action: A) -> Result<A::Ok, A::Err>
     where
@@ -30,7 +30,7 @@ where
 
         let selections = action.select(&context)?;
 
-        let (events, select) = self.iter_select(selections, None);
+        let (events, select) = self.select_multiple(selections, None);
 
         for event in events {
             let event_and_mask = event?;
@@ -45,7 +45,7 @@ where
         let events = context.into().take();
 
         if !events.is_empty() {
-            self.append_select(events, select, after)?;
+            self.append_select_multiple(events, select, after)?;
         }
 
         Ok(ok)

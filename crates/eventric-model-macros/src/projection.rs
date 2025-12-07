@@ -111,7 +111,7 @@ impl Projection {
                     ::eventric_stream::error::Error
                 > {
                     let event = match event {
-                        #(#recognize_match_arm),*
+                     #(#recognize_match_arm),*
                         _ => std::option::Option::None,
                     };
 
@@ -136,7 +136,9 @@ impl Projection {
                     ::eventric_stream::stream::select::Selection,
                     ::eventric_stream::error::Error
                 > {
-                    ::eventric_stream::stream::select::Selection::new([#(#selector_initialize?),*])
+                    ::eventric_stream::stream::select::Selection::new([
+                     #(#selector_initialize?),*
+                    ])
                 }
             }
         }

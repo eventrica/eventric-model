@@ -48,10 +48,51 @@ dependencies = [
 ]
 
 [[package]]
+name = "crossbeam"
+version = "0.8.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1137cd7e7fc0fb5d3c5a8678be38ec56e819125d8d7907411fe24ccb943faca8"
+dependencies = [
+ "crossbeam-channel",
+ "crossbeam-deque",
+ "crossbeam-epoch",
+ "crossbeam-queue",
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-channel"
+version = "0.5.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "82b8f8f868b36967f9606790d1903570de9ceaf870a7bf9fbbd3016d636a2cb2"
+dependencies = [
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-deque"
+version = "0.8.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9dd111b7b7f7d55b72c0a6ae361660ee5853c9af73f70c3c2ef6858b950e2e51"
+dependencies = [
+ "crossbeam-epoch",
+ "crossbeam-utils",
+]
+
+[[package]]
 name = "crossbeam-epoch"
 version = "0.9.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b82ac4a3c2ca9c3460964f020e1402edd5753411d7737aa39c3714ad1b5420e"
+dependencies = [
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-queue"
+version = "0.3.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f58bbc28f91df819d0aa2a2c00cd19754769c2fad90579b3592b1c9ba7a3115"
 dependencies = [
  "crossbeam-utils",
 ]
@@ -229,17 +270,18 @@ dependencies = [
 [[package]]
 name = "eventric-stream"
 version = "0.1.0"
-source = "git+https://github.com/eventrica/eventric-stream.git#b32a9e7529c4001eec44c4223944fcbae9a9403f"
+source = "git+https://github.com/eventrica/eventric-stream.git#dd691ff7fc631d4169f59bfda0545261a4618a75"
 dependencies = [
  "eventric-stream-core",
  "eventric-stream-macros",
+ "eventric-stream-multi-thread",
  "include-utils",
 ]
 
 [[package]]
 name = "eventric-stream-core"
 version = "0.1.0"
-source = "git+https://github.com/eventrica/eventric-stream.git#b32a9e7529c4001eec44c4223944fcbae9a9403f"
+source = "git+https://github.com/eventrica/eventric-stream.git#dd691ff7fc631d4169f59bfda0545261a4618a75"
 dependencies = [
  "bytes",
  "dashmap",
@@ -257,12 +299,24 @@ dependencies = [
 [[package]]
 name = "eventric-stream-macros"
 version = "0.1.0"
-source = "git+https://github.com/eventrica/eventric-stream.git#b32a9e7529c4001eec44c4223944fcbae9a9403f"
+source = "git+https://github.com/eventrica/eventric-stream.git#dd691ff7fc631d4169f59bfda0545261a4618a75"
 dependencies = [
  "darling",
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "eventric-stream-multi-thread"
+version = "0.1.0"
+source = "git+https://github.com/eventrica/eventric-stream.git#dd691ff7fc631d4169f59bfda0545261a4618a75"
+dependencies = [
+ "crossbeam",
+ "derive_more",
+ "eventric-stream-core",
+ "fancy_constructor",
+ "oneshot",
 ]
 
 [[package]]
@@ -533,6 +587,12 @@ name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
+
+[[package]]
+name = "oneshot"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4ce411919553d3f9fa53a0880544cda985a112117a0444d5ff1e870a893d6ea"
 
 [[package]]
 name = "parking_lot_core"

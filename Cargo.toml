@@ -10,7 +10,7 @@ resolver = "2"
 
 [workspace.dependencies]
 assertables           = { version = "9" }
-darling               = { version = "0.21" }
+darling               = { version = "0.23" }
 derive_more           = { version = "2", features = ["full"] }
 eventric-model        = { path = "crates/eventric-model" }
 eventric-model-core   = { path = "crates/eventric-model-core" }

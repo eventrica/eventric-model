@@ -270,7 +270,7 @@ dependencies = [
 [[package]]
 name = "eventric-stream"
 version = "0.1.0"
-source = "git+https://github.com/eventrica/eventric-stream.git#dd691ff7fc631d4169f59bfda0545261a4618a75"
+source = "git+https://github.com/eventrica/eventric-stream.git#d8c20139266ca0d0c0347a2d096bfef6b82a8611"
 dependencies = [
  "eventric-stream-core",
  "eventric-stream-macros",
@@ -281,7 +281,7 @@ dependencies = [
 [[package]]
 name = "eventric-stream-core"
 version = "0.1.0"
-source = "git+https://github.com/eventrica/eventric-stream.git#dd691ff7fc631d4169f59bfda0545261a4618a75"
+source = "git+https://github.com/eventrica/eventric-stream.git#d8c20139266ca0d0c0347a2d096bfef6b82a8611"
 dependencies = [
  "bytes",
  "dashmap",
@@ -299,7 +299,7 @@ dependencies = [
 [[package]]
 name = "eventric-stream-macros"
 version = "0.1.0"
-source = "git+https://github.com/eventrica/eventric-stream.git#dd691ff7fc631d4169f59bfda0545261a4618a75"
+source = "git+https://github.com/eventrica/eventric-stream.git#d8c20139266ca0d0c0347a2d096bfef6b82a8611"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -310,7 +310,7 @@ dependencies = [
 [[package]]
 name = "eventric-stream-multi-thread"
 version = "0.1.0"
-source = "git+https://github.com/eventrica/eventric-stream.git#dd691ff7fc631d4169f59bfda0545261a4618a75"
+source = "git+https://github.com/eventrica/eventric-stream.git#d8c20139266ca0d0c0347a2d096bfef6b82a8611"
 dependencies = [
  "crossbeam",
  "derive_more",
@@ -322,7 +322,7 @@ dependencies = [
 [[package]]
 name = "eventric-utils"
 version = "0.1.0"
-source = "git+https://github.com/eventrica/eventric-utils.git#6aad1d7795920a758e8966d6958069f08399907e"
+source = "git+https://github.com/eventrica/eventric-utils.git#1d4d0077f93132aa8f06eb8fa9d1c7fc113d3b2e"
 dependencies = [
  "thiserror",
 ]
